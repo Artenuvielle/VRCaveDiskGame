@@ -14,7 +14,7 @@ Disk::Disk() {
 	transform->setScale(Vec3f(10.f,10.f,10.f));
 
 	ComponentTransformRecPtr innerTransform = ComponentTransform::create();
-	innerTransform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+	innerTransform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)));
 
 	NodeRecPtr transformNode = makeNodeFor(transform);
 	NodeRecPtr innerTransformNode = makeNodeFor(innerTransform);
