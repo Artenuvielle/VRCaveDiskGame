@@ -1,5 +1,6 @@
 build_user/
 cmake/
+exe/
 CMakeLists.txt
 linux_compile
 start_csm.bat

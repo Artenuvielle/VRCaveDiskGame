@@ -11,7 +11,7 @@ NodeTransitPtr buildScene()
 	NodeRecPtr root = Node::create();
 	root->setCore(Group::create());
 	
-	boundingBoxModel = SceneFileHandler::the()->read("models/bbox.3ds");
+	boundingBoxModel = SceneFileHandler::the()->read("models/bbox.3DS");
 	
 	/*ComponentTransformRecPtr */boundingBoxModelCT = ComponentTransform::create();
 	boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
@@ -25,7 +25,7 @@ NodeTransitPtr buildScene()
 	root->addChild(boundingBoxModelTrans);
 	
 	
-	NodeRecPtr diskModel = SceneFileHandler::the()->read("models/disk.3ds");	
+	NodeRecPtr diskModel = SceneFileHandler::the()->read("models/disk.3DS");	
 	movableTransform = ComponentTransform::create();
 	movableTransform->setTranslation(Vec3f(0,135,0));
 	movableTransform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
