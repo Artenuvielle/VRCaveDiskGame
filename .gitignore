@@ -1,0 +1,10 @@
+build_user/
+cmake/
+CMakeLists.txt
+linux_compile
+start_csm.bat
+start_demo_cave_Release.bat
+start_demo_Release.bat
+start_vs_user.lnk
+user.cmake
+windows_run_cmake.bat
