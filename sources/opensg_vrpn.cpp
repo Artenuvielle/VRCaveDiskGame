@@ -211,6 +211,9 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		Real32 time = glutGet(GLUT_ELAPSED_TIME);
 
+		std::cout << "Timestamp: " << time << '\n';
+		std::cout << "Head position: " << head_position << " orientation: " << head_orientation << '\n';
+		std::cout << "Wand position: " << wand_position << " orientation: " << wand_orientation << '\n';
 		playerDisk->setPosition(wand_position);
 		playerDisk->setRotation(wand_orientation);
 		playerDisk->setTargetReturningPosition(wand_position);

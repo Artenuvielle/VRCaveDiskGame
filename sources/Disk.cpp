@@ -103,6 +103,11 @@ void Disk::updatePosition() {
 		checkWallCollision();
 		interpolateReturningMomentum(time - lastPositionUpdateTime);
 		transform->setTranslation(transform->getTranslation() + (time - lastPositionUpdateTime) / 100 * momentum);
+		if (diskType == DISK_TYPE_PLAYER && transform->getTranslation().z() > targetReturningPosition.z()) {
+			state = DISK_STATE_READY;
+		} else if(diskType == DISK_TYPE_ENEMY && transform->getTranslation().z() < targetReturningPosition.z()) {
+			state = DISK_STATE_READY;
+		}
 	}
 	lastPositionUpdateTime = time;
 }
@@ -133,8 +138,5 @@ void Disk::interpolateReturningMomentum(Real32 deltaTime) {
 	Vec3f rotationAxis = momentum.cross(directionToInterpolateTo);
 	Real32 angleToRotate = osgACos(momentum.dot(directionToInterpolateTo) / (momentum.length() * directionToInterpolateTo.length()));
 	// multiplies the quaternion with momentum and saves the result in momentum
-	std::cout << momentum << " " << targetReturningPosition << " " << directionToInterpolateTo << " " << rotationAxis << " " << angleToRotate << " ";
 	Quaternion(rotationAxis, angleToRotate * deltaTime / 1000).multVec(momentum, momentum);
-	std::cout << momentum << "\n";
-	state = DISK_STATE_FREE_FLY;
 }
