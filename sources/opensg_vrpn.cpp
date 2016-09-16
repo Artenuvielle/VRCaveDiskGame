@@ -11,6 +11,10 @@
 #include <OpenSG/OSGMultiDisplayWindow.h>
 #include <OpenSG/OSGSceneFileHandler.h>
 
+#include <OpenSG/OSGGradientBackground.h>
+#include <OpenSG/OSGImage.h>
+#include <OpenSG/OSGSimpleTexturedMaterial.h>
+
 #include <OSGCSM/OSGCAVESceneManager.h>
 #include <OSGCSM/OSGCAVEConfig.h>
 #include <OSGCSM/appctrl.h>
@@ -18,6 +22,9 @@
 #include <vrpn_Tracker.h>
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
+
+#include "Common.h"
+#include "BuildScene.h"
 
 OSG_USING_NAMESPACE
 
@@ -37,44 +44,22 @@ void cleanup()
 
 void print_tracker();
 
-TransformRecPtr transCore;
-ComponentTransformRecPtr movableTransform;
-Vec3f diskDirection(0.f,0.f,0.f);
-Real32 startTime;
-
-NodeTransitPtr buildScene()
-{
-        NodeRecPtr root = Node::create();
-        root->setCore(Group::create());
-
-        NodeRecPtr boundingBoxModel = SceneFileHandler::the()->read("models/bbox.3DS");
-
-        ComponentTransformRecPtr boundingBoxModelCT = ComponentTransform::create();
-        //boundingBoxModelCT->setTranslation(Vec3f(0,170,180));
-        boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
-        boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
-        boundingBoxModelCT->setScale(Vec3f(270.f,270.f,270.f));
-
-        NodeRecPtr boundingBoxModelTrans = makeNodeFor(boundingBoxModelCT);
-        boundingBoxModelTrans->addChild(boundingBoxModel);
-
-        root->addChild(boundingBoxModelTrans);
-
-
-        NodeRecPtr diskModel = SceneFileHandler::the()->read("models/disk.3DS");
-        movableTransform = ComponentTransform::create();
-        //movableTransform->setTranslation(Vec3f(0,167,196));
-        movableTransform->setTranslation(Vec3f(0,0,0));
-        movableTransform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
-        movableTransform->setScale(Vec3f(10.f,10.f,10.f));
-
-        NodeRecPtr diskModelTrans = makeNodeFor(movableTransform);
-        diskModelTrans->addChild(diskModel);
-
-        root->addChild(diskModelTrans);
-
-        // you will see a donut at the floor, slightly skewed, depending on head_position
-        return NodeTransitPtr(root);
+void calculateWallCollision(ComponentTransformRecPtr disk) {
+	Real32 x,y,z;
+	disk->getTranslation().getSeparateValues(x,y,z);
+	//std::cout << "x: " << x << " y: " << y << " z: " << z << "\n";
+	if (x > 135.f || x < -135) {
+		diskDirection = Vec3f(-diskDirection.x(), diskDirection.y(), diskDirection.z());
+		//std::cout << "changed x: " << diskDirection << "\n";
+	}
+	if (y > 270 || y < 0) {
+		diskDirection = Vec3f(diskDirection.x(), -diskDirection.y(), diskDirection.z());
+		//std::cout << "changed y: " << diskDirection << "\n";
+	}
+	if (z > 135 || z < -945) {
+		diskDirection = Vec3f(diskDirection.x(), diskDirection.y(), -diskDirection.z());
+		//std::cout << "changed z: " << diskDirection << "\n";
+	}
 }
 
 template<typename T>
@@ -85,20 +70,12 @@ T scale_tracker2cm(const T& value)
 }
 
 auto head_orientation = Quaternion(Vec3f(0.f, 1.f, 0.f), 3.141f);
-auto head_position = Vec3f(0.f, 187.f, 100.f);	// a 1.7m Person 2m in front of the scene
-
-bool out1 = true;
-bool out2 = true;
+auto head_position = Vec3f(0.f, 170.f, 130.f);	// a 1.7m Person 2m in front of the scene
 
 void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
 	head_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
 	head_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
-
-        if (out1) {
-            out1 = false;
-            std::cout << "Head position: " << head_position << " orientation: " << head_orientation << '\n';
-        }
 }
 
 auto wand_orientation = Quaternion();
@@ -107,18 +84,6 @@ void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tr
 {
 	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
 	wand_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
-	
-        /*Matrix m;
-	m.setIdentity();
-	m.setTranslate(wand_position);
-	m.setRotate(wand_orientation);
-        tPlayerDisk->setMatrix(m);*/
-        movableTransform->setTranslation(wand_position);
-        movableTransform->setRotation(wand_orientation);
-        if (out2) {
-            out2 = false;
-            std::cout << "Wand position: " << wand_position << " orientation: " << wand_orientation << '\n';
-        }
 }
 
 auto analog_values = Vec3f();
@@ -175,51 +140,58 @@ void keyboard(unsigned char k, int x, int y)
 {
 	Real32 ed;
 	switch(k)
-        {
-                case 'q':
-                case 27:
-                        cleanup();
-                        exit(EXIT_SUCCESS);
-                        break;
-                case 'e':
-                        ed = mgr->getEyeSeparation() * .9f;
-                        std::cout << "Eye distance: " << ed << '\n';
-                        mgr->setEyeSeparation(ed);
-                        break;
-                case 'E':
-                        ed = mgr->getEyeSeparation() * 1.1f;
-                        std::cout << "Eye distance: " << ed << '\n';
-                        mgr->setEyeSeparation(ed);
-                        break;
-                case 'h':
-                        cfg.setFollowHead(!cfg.getFollowHead());
-                        std::cout << "following head: " << std::boolalpha << cfg.getFollowHead() << '\n';
-                        break;
-                case 'i':
-                        print_tracker();
-                        break;
-                case 'w':
-                        movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,1,0));
-                        break;
-                case 's':
-                        movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,1,0));
-                        break;
-                case 'a':
-                        movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,0,1));
-                        break;
-                case 'd':
-                        movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
-                        break;
-                case 'x':
-                        std::cout << "bounding box position: " << movableTransform->getTranslation() << '\n';
-                        break;
-                case ' ':
-                        diskDirection = Vec3f(0.f,0.f,-1.f);
-                        diskDirection.normalize();
-                        startTime = glutGet(GLUT_ELAPSED_TIME);
-                        break;
-                default:
-                        std::cout << "Key '" << k << "' ignored\n";
+	{
+		case 'q':
+		case 27: 
+			cleanup();
+			exit(EXIT_SUCCESS);
+			break;
+		case 'e':
+			ed = mgr->getEyeSeparation() * .9f;
+			std::cout << "Eye distance: " << ed << '\n';
+			mgr->setEyeSeparation(ed);
+			break;
+		case 'E':
+			ed = mgr->getEyeSeparation() * 1.1f;
+			std::cout << "Eye distance: " << ed << '\n';
+			mgr->setEyeSeparation(ed);
+			break;
+		case 'h':
+			cfg.setFollowHead(!cfg.getFollowHead());
+			std::cout << "following head: " << std::boolalpha << cfg.getFollowHead() << '\n';
+			break;
+		case 'i':
+			print_tracker();
+			break;
+		case 'w':
+			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,1,0));
+			xangle--;
+			std::cout << xangle << '\n';
+			boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+			break;
+		case 's':
+			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,1,0));
+			xangle++;
+			std::cout << xangle << '\n';
+			boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+			break;
+		case 'a':
+			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,0,1));
+			break;
+		case 'd':
+			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
+			break;
+		case 'x':
+			std::cout << "disk position: " << movableTransform->getTranslation() << '\n';
+			std::cout << "Boundingbox: " << boundingBoxModel->getVolume() << '\n';
+			break;
+		case ' ':
+			diskDirection = Vec3f(0.5f,0.f,-1.f);
+			diskDirection.normalize();
+			startTime = glutGet(GLUT_ELAPSED_TIME);
+			break;
+		default:
+			std::cout << "Key '" << k << "' ignored\n";
 	}
 }
 
@@ -242,6 +214,13 @@ void setupGLUT(int *argc, char *argv[])
 	glutKeyboardFunc(keyboard);
 	glutIdleFunc([]()
 	{
+		// get the time since the application started
+		Real32 time = glutGet(GLUT_ELAPSED_TIME);
+
+		calculateWallCollision(movableTransform);
+		movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
+		startTime = time;
+
 		check_tracker();
 		const auto speed = 1.f;
 		mgr->setUserTransform(head_position, head_orientation);
@@ -325,6 +304,13 @@ int main(int argc, char **argv)
 		mgr->showAll();
 		mgr->getWindow()->init();
 		mgr->turnWandOff();
+		
+		// alternatively use a gradient background
+		GradientBackgroundRecPtr bkg = GradientBackground::create();
+		bkg->addLine(Color3f(0.7f, 0.7f, 0.8f), 0);
+		bkg->addLine(Color3f(0.0f, 0.1f, 0.3f), 1);
+
+		mgr->getWindow()->getPort(0)->setBackground(bkg);
 	}
 	catch(const std::exception& e)
 	{
