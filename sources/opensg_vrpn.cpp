@@ -213,6 +213,7 @@ void setupGLUT(int *argc, char *argv[])
 
 		playerDisk->setPosition(wand_position);
 		playerDisk->setRotation(wand_orientation);
+		playerDisk->setTargetReturningPosition(wand_position);
 		playerDisk->updatePosition();
 		
 		//movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
