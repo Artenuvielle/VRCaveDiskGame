@@ -84,7 +84,7 @@ void Disk::updatePosition() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	if(state == DISK_STATE_FREE_FLY) {
 		checkWallCollision();
-		transform->setTranslation(transform->getTranslation() + (time - lastPositionUpdateTime) / 2 * momentum);
+		transform->setTranslation(transform->getTranslation() + (time - lastPositionUpdateTime) / 100 * momentum);
 	}
 	lastPositionUpdateTime = time;
 }
