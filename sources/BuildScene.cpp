@@ -1,6 +1,6 @@
 #include "BuildScene.h"
 
-#include <OpenSG\OSGSceneFileHandler.h>
+#include <OpenSG/OSGSceneFileHandler.h>
 
 #include "Common.h"
 
