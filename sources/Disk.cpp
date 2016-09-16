@@ -129,7 +129,7 @@ void Disk::checkWallCollision() {
 }
 
 void Disk::interpolateReturningMomentum(Real32 deltaTime) {
-	Vec3f directionToInterpolateTo = targetReturningPosition - momentum;
+	Vec3f directionToInterpolateTo = targetReturningPosition - transform->getTranslation();
 	Vec3f rotationAxis = momentum.cross(directionToInterpolateTo);
 	Real32 angleToRotate = osgACos(momentum.dot(directionToInterpolateTo) / (momentum.length() * directionToInterpolateTo.length()));
 	// multiplies the quaternion with momentum and saves the result in momentum
