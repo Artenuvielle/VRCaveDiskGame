@@ -8,6 +8,8 @@
 
 OSG_USING_NAMESPACE
 
+extern NodeRecPtr diskModel;
+
 extern NodeTransitPtr buildScene();
 
 #endif

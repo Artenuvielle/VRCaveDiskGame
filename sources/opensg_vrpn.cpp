@@ -25,6 +25,7 @@
 
 #include "Common.h"
 #include "BuildScene.h"
+#include "Disk.h"
 
 OSG_USING_NAMESPACE
 
@@ -34,8 +35,11 @@ vrpn_Tracker_Remote* tracker =  nullptr;
 vrpn_Button_Remote* button = nullptr;
 vrpn_Analog_Remote* analog = nullptr;
 
+Disk* playerDisk;
+
 void cleanup()
 {
+	delete playerDisk;
 	delete mgr;
 	delete tracker;
 	delete button;
@@ -44,20 +48,20 @@ void cleanup()
 
 void print_tracker();
 
-void calculateWallCollision(ComponentTransformRecPtr disk) {
+void calculateWallCollision(Disk* disk) {
 	Real32 x,y,z;
-	disk->getTranslation().getSeparateValues(x,y,z);
+	disk->getPosition().getSeparateValues(x,y,z);
 	//std::cout << "x: " << x << " y: " << y << " z: " << z << "\n";
 	if (x > 135.f || x < -135) {
-		diskDirection = Vec3f(-diskDirection.x(), diskDirection.y(), diskDirection.z());
+		//diskDirection = Vec3f(-diskDirection.x(), diskDirection.y(), diskDirection.z());
 		//std::cout << "changed x: " << diskDirection << "\n";
 	}
 	if (y > 270 || y < 0) {
-		diskDirection = Vec3f(diskDirection.x(), -diskDirection.y(), diskDirection.z());
+		//diskDirection = Vec3f(diskDirection.x(), -diskDirection.y(), diskDirection.z());
 		//std::cout << "changed y: " << diskDirection << "\n";
 	}
 	if (z > 135 || z < -945) {
-		diskDirection = Vec3f(diskDirection.x(), diskDirection.y(), -diskDirection.z());
+		//diskDirection = Vec3f(diskDirection.x(), diskDirection.y(), -diskDirection.z());
 		//std::cout << "changed z: " << diskDirection << "\n";
 	}
 }
@@ -95,8 +99,17 @@ void VRPN_CALLBACK callback_analog(void* userData, const vrpn_ANALOGCB analog)
 
 void VRPN_CALLBACK callback_button(void* userData, const vrpn_BUTTONCB button)
 {
-	if (button.button == 0 && button.state == 1)
-		print_tracker();
+	if (button.button == 0) {
+		if (button.state == 1) {
+			if(playerDisk->getState() == DISK_STATE_READY) {
+				playerDisk->startDraw(wand_position);
+			}
+		} else {
+			if(playerDisk->getState() == DISK_STATE_DRAWN) {
+				playerDisk->endDraw(wand_position);
+			}
+		}
+	}
 }
 
 void InitTracker(OSGCSM::CAVEConfig &cfg)
@@ -165,15 +178,15 @@ void keyboard(unsigned char k, int x, int y)
 			break;
 		case 'w':
 			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,1,0));
-			xangle--;
-			std::cout << xangle << '\n';
-			boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+			//xangle--;
+			//std::cout << xangle << '\n';
+			//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
 			break;
 		case 's':
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,1,0));
-			xangle++;
-			std::cout << xangle << '\n';
-			boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+			//xangle++;
+			//std::cout << xangle << '\n';
+			//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
 			break;
 		case 'a':
 			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,0,1));
@@ -182,13 +195,12 @@ void keyboard(unsigned char k, int x, int y)
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
 			break;
 		case 'x':
-			std::cout << "disk position: " << movableTransform->getTranslation() << '\n';
+			//std::cout << "disk position: " << movableTransform->getTranslation() << '\n';
 			std::cout << "Boundingbox: " << boundingBoxModel->getVolume() << '\n';
 			break;
 		case ' ':
-			diskDirection = Vec3f(0.5f,0.f,-1.f);
-			diskDirection.normalize();
-			startTime = glutGet(GLUT_ELAPSED_TIME);
+			//diskDirection = Vec3f(0.5f,0.f,-1.f);
+			//diskDirection.normalize();
 			break;
 		default:
 			std::cout << "Key '" << k << "' ignored\n";
@@ -217,8 +229,9 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		Real32 time = glutGet(GLUT_ELAPSED_TIME);
 
-		calculateWallCollision(movableTransform);
-		movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
+		calculateWallCollision(playerDisk);
+		playerDisk->setPosition(wand_position);
+		//movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
 		startTime = time;
 
 		check_tracker();
@@ -297,6 +310,8 @@ int main(int argc, char **argv)
 		if (!scene) 
 			scene = buildScene();
 		commitChanges();
+
+		playerDisk = new Disk();
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );
