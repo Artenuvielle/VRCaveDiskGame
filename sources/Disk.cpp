@@ -30,6 +30,10 @@ Disk::Disk() {
 
 bool Disk::setPosition(Vec3f newPosition) {
 	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN) {
+		if (state == DISK_STATE_DRAWN) {
+			momentum = 0.9f * momentum + (newPosition - lastPositionWhileDrawn);
+			lastPositionWhileDrawn = newPosition;
+		}
 		transform->setTranslation(newPosition);
 		return true;
 	}
@@ -56,16 +60,45 @@ DiskState Disk::getState() {
 	return state;
 }
 
-bool Disk::startDraw(Vec3f pos) {
+bool Disk::startDraw(Vec3f position) {
 	if(state == DISK_STATE_READY) {
+		lastPositionWhileDrawn = position;
+		momentum = Vec3f(0,0,0);
+		state = DISK_STATE_DRAWN;
+		std::cout << "started drawing a disk" << '\n';
 		return true;
 	}
 	return false;
 }
 
-bool Disk::endDraw(Vec3f pos) {
+bool Disk::endDraw(Vec3f position) {
 	if(state == DISK_STATE_DRAWN) {
+		state = DISK_STATE_FREE_FLY;
+		std::cout << "finished drawing a disk... LET IF FLYYYYYY" << '\n';
 		return true;
 	}
 	return false;
+}
+
+void Disk::updatePosition() {
+	Real32 time = glutGet(GLUT_ELAPSED_TIME);
+	if(state == DISK_STATE_FREE_FLY) {
+		checkWallCollision();
+		transform->setTranslation(transform->getTranslation() + (time - lastPositionUpdateTime) / 2 * momentum);
+	}
+	lastPositionUpdateTime = time;
+}
+
+void Disk::checkWallCollision() {
+	Real32 x,y,z;
+	transform->getTranslation().getSeparateValues(x,y,z);
+	if (x > 135.f || x < -135) {
+		momentum = Vec3f(-momentum.x(), momentum.y(), momentum.z());
+	}
+	if (y > 270 || y < 0) {
+		momentum = Vec3f(momentum.x(), -momentum.y(), momentum.z());
+	}
+	if (z > 135 || z < -945) {
+		momentum = Vec3f(momentum.x(), momentum.y(), -momentum.z());
+	}
 }

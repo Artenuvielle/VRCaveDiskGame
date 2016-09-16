@@ -48,24 +48,6 @@ void cleanup()
 
 void print_tracker();
 
-void calculateWallCollision(Disk* disk) {
-	Real32 x,y,z;
-	disk->getPosition().getSeparateValues(x,y,z);
-	//std::cout << "x: " << x << " y: " << y << " z: " << z << "\n";
-	if (x > 135.f || x < -135) {
-		//diskDirection = Vec3f(-diskDirection.x(), diskDirection.y(), diskDirection.z());
-		//std::cout << "changed x: " << diskDirection << "\n";
-	}
-	if (y > 270 || y < 0) {
-		//diskDirection = Vec3f(diskDirection.x(), -diskDirection.y(), diskDirection.z());
-		//std::cout << "changed y: " << diskDirection << "\n";
-	}
-	if (z > 135 || z < -945) {
-		//diskDirection = Vec3f(diskDirection.x(), diskDirection.y(), -diskDirection.z());
-		//std::cout << "changed z: " << diskDirection << "\n";
-	}
-}
-
 template<typename T>
 T scale_tracker2cm(const T& value)
 {
@@ -229,9 +211,10 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		Real32 time = glutGet(GLUT_ELAPSED_TIME);
 
-		calculateWallCollision(playerDisk);
 		playerDisk->setPosition(wand_position);
 		playerDisk->setRotation(wand_orientation);
+		playerDisk->updatePosition();
+		
 		//movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
 		startTime = time;
 

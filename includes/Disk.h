@@ -29,8 +29,11 @@ public:
 	void updatePosition();
 	Disk();
 private:
+	void checkWallCollision();
 	Vec3f momentum;
+	Vec3f lastPositionWhileDrawn;
 	ComponentTransformRecPtr transform;
+	Real32 lastPositionUpdateTime;
 	DiskState state;
 };
 
