@@ -136,4 +136,5 @@ void Disk::interpolateReturningMomentum(Real32 deltaTime) {
 	std::cout << momentum << " " << targetReturningPosition << " " << directionToInterpolateTo << " " << rotationAxis << " " << angleToRotate << " ";
 	Quaternion(rotationAxis, angleToRotate * deltaTime / 1000).multVec(momentum, momentum);
 	std::cout << momentum << "\n";
+	state = DISK_STATE_FREE_FLY;
 }
