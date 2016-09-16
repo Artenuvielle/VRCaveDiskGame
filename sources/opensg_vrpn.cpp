@@ -83,7 +83,7 @@ void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tr
 }
 
 auto wand_orientation = Quaternion();
-auto wand_position = Vec3f();
+auto wand_position = Vec3f(0,135,0);
 void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
 	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);

@@ -8,7 +8,7 @@
 OSG_USING_NAMESPACE
 
 Disk::Disk() {
-	NodeRecPtr model;
+	NodeRecPtr model = deepCloneTree(diskModel);
 	transform = ComponentTransform::create();
 	transform->setTranslation(Vec3f(0,135,0));
 	transform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
