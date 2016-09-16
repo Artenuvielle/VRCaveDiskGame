@@ -18,8 +18,10 @@ enum DiskState {
 
 class Disk {
 public:
-	bool setPosition(Vec3f pos);
+	bool setPosition(Vec3f newPosition);
 	Vec3f getPosition();
+	bool setRotation(Quaternion newRotation);
+	Quaternion getRotation();
 	DiskState getState();
 
 	bool startDraw(Vec3f pos);

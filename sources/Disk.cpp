@@ -24,9 +24,9 @@ Disk::Disk() {
 	commitChanges();
 }
 
-bool Disk::setPosition(Vec3f pos) {
+bool Disk::setPosition(Vec3f newPosition) {
 	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN) {
-		transform->setTranslation(pos);
+		transform->setTranslation(newPosition);
 		return true;
 	}
 	return false;
@@ -34,6 +34,18 @@ bool Disk::setPosition(Vec3f pos) {
 
 Vec3f Disk::getPosition() {
 	return transform->getTranslation();
+}
+
+bool Disk::setRotation(Quaternion newRotation) {
+	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN) {
+		transform->setRotation(newRotation);
+		return true;
+	}
+	return false;
+}
+
+Quaternion Disk::getRotation() {
+	return transform->getRotation();
 }
 
 DiskState Disk::getState() {

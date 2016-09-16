@@ -231,6 +231,7 @@ void setupGLUT(int *argc, char *argv[])
 
 		calculateWallCollision(playerDisk);
 		playerDisk->setPosition(wand_position);
+		playerDisk->setRotation(wand_orientation);
 		//movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
 		startTime = time;
 
