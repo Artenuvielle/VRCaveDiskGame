@@ -5,8 +5,9 @@
 #include "Common.h"
 
 OSG_USING_NAMESPACE
-
-NodeRecPtr diskModel;
+	
+NodeRecPtr diskModelPlayer;
+NodeRecPtr diskModelEnemy;
 
 NodeTransitPtr buildScene()
 {
@@ -27,18 +28,8 @@ NodeTransitPtr buildScene()
 	root->addChild(boundingBoxModelTrans);
 	
 	
-	diskModel = SceneFileHandler::the()->read("models/disk.3DS");	
-	/*
-	movableTransform = ComponentTransform::create();
-	movableTransform->setTranslation(Vec3f(0,135,0));
-	movableTransform->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
-	movableTransform->setScale(Vec3f(10.f,10.f,10.f));
-
-	NodeRecPtr diskModelTrans = makeNodeFor(movableTransform);
-	diskModelTrans->addChild(diskModel);
-
-	root->addChild(diskModelTrans);
-	*/
+	diskModelPlayer = SceneFileHandler::the()->read("models/disk.3DS");
+	diskModelEnemy = SceneFileHandler::the()->read("models/disk2.3DS");
 	
 	// you will see a donut at the floor, slightly skewed, depending on head_position
 	return NodeTransitPtr(root);

@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 			scene = buildScene();
 		commitChanges();
 
-		playerDisk = new Disk();
+		playerDisk = new Disk(DISK_TYPE_PLAYER);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );
