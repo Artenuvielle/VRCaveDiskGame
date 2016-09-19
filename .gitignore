@@ -8,4 +8,5 @@ start_demo_cave_Release.bat
 start_demo_Release.bat
 start_vs_user.lnk
 user.cmake
+UserTemplate.user
 windows_run_cmake.bat

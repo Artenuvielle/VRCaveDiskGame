@@ -26,6 +26,8 @@
 #include "Common.h"
 #include "BuildScene.h"
 #include "Disk.h"
+#include "Animations.h"
+#include "Simulation.h"
 
 OSG_USING_NAMESPACE
 
@@ -177,12 +179,20 @@ void keyboard(unsigned char k, int x, int y)
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
 			break;
 		case 'x':
-			//std::cout << "disk position: " << movableTransform->getTranslation() << '\n';
-			std::cout << "Boundingbox: " << boundingBoxModel->getVolume() << '\n';
+			//createWallCollisionAnimation(Vec3f(0,135,20), 40, 40, Vec3f(-1,-1,-1), mainUserFaction);
+			createWallCollisionAnimation(Vec3f(0,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
+			createWallCollisionAnimation(Vec3f(136,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
+			createWallCollisionAnimation(Vec3f(150,270,-270), 50, 50, Vec3f(0,1,0), mainUserFaction);
 			break;
 		case ' ':
+			//playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 250, -380), COLLISION_WALL_NORMAL_X);
+			//playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 5, -940), COLLISION_WALL_NORMAL_X);
+			//playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 5, -900), COLLISION_WALL_NORMAL_X);
 			//diskDirection = Vec3f(0.5f,0.f,-1.f);
 			//diskDirection.normalize();
+			playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 0, -945), COLLISION_WALL_NORMAL_X);
+			playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 0, -945), COLLISION_WALL_NORMAL_Y);
+			playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 270, -945), COLLISION_WALL_NORMAL_Z);
 			break;
 		default:
 			std::cout << "Key '" << k << "' ignored\n";
@@ -209,20 +219,36 @@ void setupGLUT(int *argc, char *argv[])
 	glutIdleFunc([]()
 	{
 		// get the time since the application started
-		Real32 time = glutGet(GLUT_ELAPSED_TIME);
+		int time = glutGet(GLUT_ELAPSED_TIME);
 
-		std::cout << "Timestamp: " << time << '\n';
-		std::cout << "Head position: " << head_position << " orientation: " << head_orientation << '\n';
-		std::cout << "Wand position: " << wand_position << " orientation: " << wand_orientation << '\n';
 		playerDisk->setPosition(wand_position);
 		playerDisk->setRotation(wand_orientation);
 		playerDisk->setTargetReturningPosition(wand_position);
 		playerDisk->updatePosition();
-		
-		//movableTransform->setTranslation(movableTransform->getTranslation() + (time - startTime) / 2 * diskDirection);
-		startTime = time;
 
+		updateAnimations();
+		
 		check_tracker();
+
+		/**/
+		SimStep t = getSimulationStep(time);
+		wand_position = t.wand_position;
+		wand_orientation = t.wand_orientation;
+		head_position = t.head_position;
+		head_orientation = t.head_orientation;
+		InputStep i = getInputStep(time);
+		if (i.buttonPushed) {
+			if(playerDisk->getState() == DISK_STATE_READY) {
+				playerDisk->startDraw(wand_position);
+			}
+		} else {
+			if(playerDisk->getState() == DISK_STATE_DRAWN) {
+				playerDisk->endDraw(wand_position);
+			}
+		}
+		/*
+		*/
+		
 		const auto speed = 1.f;
 		mgr->setUserTransform(head_position, head_orientation);
 		mgr->setTranslation(mgr->getTranslation() + speed * analog_values);
@@ -299,7 +325,8 @@ int main(int argc, char **argv)
 			scene = buildScene();
 		commitChanges();
 
-		playerDisk = new Disk(DISK_TYPE_PLAYER);
+		initSimulation();
+		playerDisk = new Disk(mainUserFaction);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );

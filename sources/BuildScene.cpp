@@ -6,8 +6,11 @@
 
 OSG_USING_NAMESPACE
 	
-NodeRecPtr diskModelPlayer;
-NodeRecPtr diskModelEnemy;
+NodeRecPtr diskModelBlue;
+NodeRecPtr diskModelOrange;
+std::vector<ImageRecPtr> collisionImagesBlue;
+std::vector<ImageRecPtr> collisionImagesOrange;
+
 
 NodeTransitPtr buildScene()
 {
@@ -28,8 +31,24 @@ NodeTransitPtr buildScene()
 	root->addChild(boundingBoxModelTrans);
 	
 	
-	diskModelPlayer = SceneFileHandler::the()->read("models/disk.3DS");
-	diskModelEnemy = SceneFileHandler::the()->read("models/disk2.3DS");
+	diskModelBlue = SceneFileHandler::the()->read("models/disk_blue.3DS");
+	diskModelOrange = SceneFileHandler::the()->read("models/disk_orange.3DS");
+
+	for (int i = 0; i < 25; i++) {
+		ImageRecPtr image = Image::create();
+		std::stringstream s;
+		s << "models/wall_collision_blue/wall_collision_blue_000" << (i < 10 ? "0" : "") << i << ".png";
+		image->read(s.str().c_str());
+		collisionImagesBlue.push_back(image);
+	}
+
+	for (int i = 0; i < 25; i++) {
+		ImageRecPtr image = Image::create();
+		std::stringstream s;
+		s << "models/wall_collision_orange/wall_collision_orange_000" << (i < 10 ? "0" : "") << i << ".png";
+		image->read(s.str().c_str());
+		collisionImagesOrange.push_back(image);
+	}
 	
 	// you will see a donut at the floor, slightly skewed, depending on head_position
 	return NodeTransitPtr(root);
