@@ -5,3 +5,4 @@ OSG_USING_NAMESPACE
 NodeRecPtr root;
 NodeRecPtr boundingBoxModel;
 ComponentTransformRecPtr boundingBoxModelCT;
+ComponentTransformRecPtr enemyPoint;

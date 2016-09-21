@@ -28,8 +28,10 @@ class Disk {
 public:
 	bool setPosition(Vec3f newPosition);
 	Vec3f getPosition();
-	void setTargetReturningPosition(Vec3f newPosition);
-	Vec3f getTargetReturningPosition();
+	void setTargetOwnerPosition(Vec3f newPosition);
+	Vec3f getTargetOwnerPosition();
+	void setTargetEnemyPosition(Vec3f newPosition);
+	Vec3f getTargetEnemyPosition();
 	bool setRotation(Quaternion newRotation);
 	Quaternion getRotation();
 	DiskState getState();
@@ -42,16 +44,24 @@ public:
 	void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
 private:
 	void moveDiskAtLeastUntilCollision(Real32 deltaTime);
-	void interpolateReturningMomentum(Real32 deltaTime);
+	//void interpolateMomentum(Vec3f directionToInterpolateTo, Real32 deltaTime, Real32 attractionFactor);
 	Vec3f calculateMovement(Real32 deltaTime);
 	//void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
 	void createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal direction);
 	Vec3f momentum;
-	Vec3f targetReturningPosition;
+	Vec3f targetOwnerPosition;
+	Vec3f targetEnemyPosition;
+	Vec3f targetAxis;
+	Vec3f currentAxis;
+	Vec3f lastCollisionAxis;
+	Real32 lastCollisionTime;
+	Real32 rotationAroundAxis;
 	PlayerFaction diskType;
 	Vec3f lastPositionWhileDrawn;
+	Vec3f lastFowardVectorWhileDrawn;
 	ComponentTransformRecPtr transform;
 	Real32 lastPositionUpdateTime;
+	Real32 lastRotationUpdateTime;
 	DiskState state;
 };
 

@@ -16,7 +16,6 @@ extern NodeRecPtr diskModelOrange;
 extern std::vector<ImageRecPtr> collisionImagesBlue;
 extern std::vector<ImageRecPtr> collisionImagesOrange;
 
-
 extern NodeTransitPtr buildScene();
 
 #endif

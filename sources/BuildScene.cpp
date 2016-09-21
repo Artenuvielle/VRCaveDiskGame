@@ -1,6 +1,9 @@
 #include "BuildScene.h"
 
 #include <OpenSG/OSGSceneFileHandler.h>
+#include <OpenSG/OSGShaderProgram.h>
+#include <OpenSG/OSGShaderProgramChunk.h>
+#include <OpenSG/OSGShaderProgramVariableChunk.h>
 
 #include "Common.h"
 
@@ -49,6 +52,44 @@ NodeTransitPtr buildScene()
 		image->read(s.str().c_str());
 		collisionImagesOrange.push_back(image);
 	}
+
+	enemyPoint = ComponentTransform::create();
+	enemyPoint->setTranslation(Vec3f(0,167,-900));
+	NodeRecPtr enemyTrans = makeNodeFor(enemyPoint);
+	enemyTrans->addChild(makeSphere(1,10));
+	root->addChild(enemyTrans);
+
+	
+	NodeRecPtr testModel = makeCylinder(80,10,20,true,true,true);
+	ComponentTransformRecPtr testTrans = ComponentTransform::create();
+	testTrans->setTranslation(Vec3f(0,135,40));
+	//testTrans->setRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)) * Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)));
+	NodeRecPtr testTransNode = makeNodeFor(testTrans);
+	testTransNode->addChild(testModel);
+	//root->addChild(testTransNode);
+	
+	ShaderProgramRefPtr vpPPL = ShaderProgram::createVertexShader();
+	ShaderProgramRefPtr fpPPL = ShaderProgram::createFragmentShader();
+	vpPPL->readProgram("shaders/pixellight.vp.glsl");
+	fpPPL->readProgram("shaders/pixellight.fp.glsl");
+	
+	ShaderProgramChunkRefPtr shaderChunk = ShaderProgramChunk::create();
+	shaderChunk->addShader(vpPPL);
+	shaderChunk->addShader(fpPPL);
+	
+	//ShaderProgramVariableChunkRecPtr varChunk = ShaderProgramVariableChunk::create();
+	
+	ChunkMaterialRecPtr mat = ChunkMaterial::create();
+	MaterialChunkRecPtr matChunk = MaterialChunk::create();
+	matChunk->setDiffuse(Color4f(0.8,0.2,0.2,1));
+	matChunk->setAmbient(Color4f(0.8,0.2,0.2,1));
+	mat->addChunk(matChunk);
+	mat->addChunk(shaderChunk);
+	//mat->addChunk(varChunk);
+
+
+	GeometryRecPtr testGeo = dynamic_cast<Geometry*>(testModel->getCore());
+	testGeo->setMaterial(mat);
 	
 	// you will see a donut at the floor, slightly skewed, depending on head_position
 	return NodeTransitPtr(root);

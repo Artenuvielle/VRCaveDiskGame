@@ -2,8 +2,6 @@
 
 #include <queue>
 
-#include "Disk.h"
-
 std::queue<SimStep> simSteps;
 std::queue<InputStep> inputSteps;
 

@@ -133,6 +133,8 @@ void print_tracker()
 	std::cout << "Analog: " << analog_values << '\n';
 }
 
+Real32 simStartTime = 0;
+
 void keyboard(unsigned char k, int x, int y)
 {
 	Real32 ed;
@@ -180,9 +182,11 @@ void keyboard(unsigned char k, int x, int y)
 			break;
 		case 'x':
 			//createWallCollisionAnimation(Vec3f(0,135,20), 40, 40, Vec3f(-1,-1,-1), mainUserFaction);
-			createWallCollisionAnimation(Vec3f(0,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
-			createWallCollisionAnimation(Vec3f(136,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
-			createWallCollisionAnimation(Vec3f(150,270,-270), 50, 50, Vec3f(0,1,0), mainUserFaction);
+			//createWallCollisionAnimation(Vec3f(0,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
+			//createWallCollisionAnimation(Vec3f(136,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
+			//createWallCollisionAnimation(Vec3f(150,270,-270), 50, 50, Vec3f(0,1,0), mainUserFaction);
+			initSimulation();
+			simStartTime = glutGet(GLUT_ELAPSED_TIME);
 			break;
 		case ' ':
 			//playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 250, -380), COLLISION_WALL_NORMAL_X);
@@ -190,9 +194,9 @@ void keyboard(unsigned char k, int x, int y)
 			//playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 5, -900), COLLISION_WALL_NORMAL_X);
 			//diskDirection = Vec3f(0.5f,0.f,-1.f);
 			//diskDirection.normalize();
-			playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 0, -945), COLLISION_WALL_NORMAL_X);
-			playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 0, -945), COLLISION_WALL_NORMAL_Y);
-			playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 270, -945), COLLISION_WALL_NORMAL_Z);
+			playerDisk->startDraw(Vec3f(-1,135,1));
+			playerDisk->setPosition(Vec3f(0,135,0));
+			playerDisk->endDraw(Vec3f(0,135,0));
 			break;
 		default:
 			std::cout << "Key '" << k << "' ignored\n";
@@ -223,27 +227,30 @@ void setupGLUT(int *argc, char *argv[])
 
 		playerDisk->setPosition(wand_position);
 		playerDisk->setRotation(wand_orientation);
-		playerDisk->setTargetReturningPosition(wand_position);
+		playerDisk->setTargetOwnerPosition(wand_position);
+		playerDisk->setTargetEnemyPosition(enemyPoint->getTranslation());
 		playerDisk->updatePosition();
 
 		updateAnimations();
 		
 		check_tracker();
 
-		/**/
-		SimStep t = getSimulationStep(time);
-		wand_position = t.wand_position;
-		wand_orientation = t.wand_orientation;
-		head_position = t.head_position;
-		head_orientation = t.head_orientation;
-		InputStep i = getInputStep(time);
-		if (i.buttonPushed) {
-			if(playerDisk->getState() == DISK_STATE_READY) {
-				playerDisk->startDraw(wand_position);
-			}
-		} else {
-			if(playerDisk->getState() == DISK_STATE_DRAWN) {
-				playerDisk->endDraw(wand_position);
+		/*/
+		if (simStartTime > 0) {
+			SimStep t = getSimulationStep(time - simStartTime + 14500);
+			wand_position = t.wand_position;
+			wand_orientation = t.wand_orientation;
+			head_position = t.head_position;
+			head_orientation = t.head_orientation;
+			InputStep i = getInputStep(time - simStartTime + 14500);
+			if (i.buttonPushed) {
+				if(playerDisk->getState() == DISK_STATE_READY) {
+					playerDisk->startDraw(wand_position);
+				}
+			} else {
+				if(playerDisk->getState() == DISK_STATE_DRAWN) {
+					playerDisk->endDraw(wand_position);
+				}
 			}
 		}
 		/*
