@@ -109,21 +109,13 @@ bool Disk::startDraw(Vec3f position) {
 	return false;
 }
 
-Vec3f getRectangularInterpolation(Vec3f from, Vec3f to) {
-	Quaternion q(from,to);
-	q.scaleAngle(90 / osgRad2Degree(from.enclosedAngle(to)));
-	Vec3f result;
-	q.multVec(from, result);
-	return result;
-	//return from.cross(to).cross(from);
-}
-
 bool Disk::endDraw(Vec3f position) {
 	if(state == DISK_STATE_DRAWN) {
 		state = DISK_STATE_FREE_FLY;
 		momentum.normalize();
-		lastCollisionAxis = currentAxis;
-		targetAxis = currentAxis;//getRectangularInterpolation(momentum, currentAxis);
+		targetAngle = Vec3f(0,1,0).enclosedAngle(currentAxis);
+		lastCollisionAngle = targetAngle;
+		currentAngle = targetAngle;
 		std::cout << "finished drawing a disk... LET IF FLYYYYYY" << '\n';
 		return true;
 	}
@@ -142,31 +134,36 @@ void Disk::updatePosition() {
 	if (state == DISK_STATE_FREE_FLY || state == DISK_STATE_RETURNING) {
 		Vec3f vectorToTarget;
 		Real32 diskMomentumAttractionFactor;
+		Vec3f forward;
 		if (state == DISK_STATE_FREE_FLY) {
 			vectorToTarget = targetEnemyPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
+			forward = Vec3f(0,0,mainUserFaction == diskType ? -1 : 1);
 		} else {
 			vectorToTarget = targetOwnerPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskOwnerMomentumAttractionFactor;
+			forward = Vec3f(0,0,mainUserFaction == diskType ? 1 : -1);
 		}
 
 		Real32 targetProximity = 1 - (vectorToTarget.length() / WALL_Z_DIFF);
 
 		Quaternion axisRotation;
 		if (time - lastCollisionTime < diskRotationTimeAfterCollision * 1000) {
-			axisRotation = interpolateVector(lastCollisionAxis, targetAxis, (time - lastPositionUpdateTime) / (diskRotationTimeAfterCollision * 1000));
+			Real32 angleDiff = targetAngle - lastCollisionAngle;
+			if (angleDiff < -180) angleDiff += 360;
+			if (angleDiff > 180) angleDiff -= 360;
+			Real32 newAngle = lastCollisionAngle + angleDiff * (time - lastCollisionTime) / (diskRotationTimeAfterCollision * 1000);
+			axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
+			currentAngle = newAngle;
 		} else {
-			Quaternion rotation = interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity);
-			rotation.multVec(momentum, momentum);
-			rotation.multVec(targetAxis, targetAxis);
-			targetAxis = getRectangularInterpolation(momentum, currentAxis);
-			axisRotation = Quaternion(currentAxis, targetAxis);
+			axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
+			currentAngle = targetAngle;
 		}
+		Quaternion rotation = interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity);
+		rotation.multVec(momentum, momentum);
 		Quaternion aroundAxisRotation(Vec3f(0,-1,0), osgDegree2Rad((time - lastPositionUpdateTime) * rotationAroundAxis / 1000 * diskAxisRotationFactor));
-		transform->setRotation(transform->getRotation() * axisRotation /** aroundAxisRotation*/);
-		//std::cout << "axis: " << currentAxis << "    targetAxis: " << targetAxis<< '\n';
+		transform->setRotation(Quaternion(forward, momentum) * /*transform->getRotation() * */ axisRotation * aroundAxisRotation/**/);
 
-		//interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity).multVec(momentum, momentum);
 		moveDiskAtLeastUntilCollision(time - lastPositionUpdateTime);
 		if (state == DISK_STATE_RETURNING) {
 			if (diskType == mainUserFaction && transform->getTranslation().z() > targetOwnerPosition.z()) {
@@ -185,7 +182,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 	Real32 x,y,z;
 	Real32 stepLengthPercentage = 1.f;
 	Vec3f nextMomentum(momentum);
-	Vec3f nextTargetAxis(currentAxis);
+	Real32 nextTargetAngle;
 	bool collided = false;
 	transform->getTranslation().getSeparateValues(x,y,z);
 	transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
@@ -199,15 +196,13 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 	// TODO: optimize to select only x values and then add them up
 	if ((transform->getTranslation() + nearestXOffset + moveVector * stepLengthPercentage).x() > WALL_X_MAX) {
 		nextMomentum = Vec3f(-nextMomentum.x(), nextMomentum.y(), nextMomentum.z());
-		nextTargetAxis = Vec3f(nextMomentum.x(), 0, nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(nextTargetAxis.x(), -nextTargetAxis.y(), -nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_X_MAX - x - nearestXOffset.x()) / moveVector.x();
 		createAnimationAtCollisionPoint(Vec3f(WALL_X_MAX,y,z), COLLISION_WALL_NORMAL_X);
 	} else if((transform->getTranslation() - nearestXOffset + moveVector * stepLengthPercentage).x() < WALL_X_MIN) {
 		nextMomentum = Vec3f(-nextMomentum.x(), nextMomentum.y(), nextMomentum.z());
-		nextTargetAxis = Vec3f(nextMomentum.x(), 0, nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(nextTargetAxis.x(), -nextTargetAxis.y(), -nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_X_MIN - x + nearestXOffset.x()) / moveVector.x();
 		createAnimationAtCollisionPoint(Vec3f(WALL_X_MIN,y,z), COLLISION_WALL_NORMAL_X);
@@ -215,15 +210,13 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 
 	if ((transform->getTranslation() + nearestYOffset + moveVector * stepLengthPercentage).y() > WALL_Y_MAX) {
 		nextMomentum = Vec3f(nextMomentum.x(), -nextMomentum.y(), nextMomentum.z());
-		nextTargetAxis = Vec3f(0, nextMomentum.y(), nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(-nextTargetAxis.x(), nextTargetAxis.y(), -nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
 		stepLengthPercentage = (WALL_Y_MAX - y - nearestYOffset.y()) / moveVector.y();
 		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MAX,z), COLLISION_WALL_NORMAL_Y);
 	} else if((transform->getTranslation() - nearestYOffset + moveVector * stepLengthPercentage).y() < WALL_Y_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), -nextMomentum.y(), nextMomentum.z());
-		nextTargetAxis = Vec3f(0, nextMomentum.y(), nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(-nextTargetAxis.x(), nextTargetAxis.y(), -nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
 		stepLengthPercentage = (WALL_Y_MIN - y + nearestYOffset.y()) / moveVector.y();
 		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MIN,z), COLLISION_WALL_NORMAL_Y);
@@ -231,8 +224,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 	
 	if ((transform->getTranslation() + nearestZOffset + moveVector * stepLengthPercentage).z() > WALL_Z_MAX) {
 		nextMomentum = Vec3f(nextMomentum.x(), nextMomentum.y(), -nextMomentum.z());
-		nextTargetAxis = Vec3f(nextMomentum.x(), 0, nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(-nextTargetAxis.x(), -nextTargetAxis.y(), nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MAX - z - nearestZOffset.z()) / moveVector.z();
 		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MAX), COLLISION_WALL_NORMAL_Z);
@@ -242,8 +234,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		}
 	} else if((transform->getTranslation() - nearestZOffset + moveVector * stepLengthPercentage).z() < WALL_Z_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), nextMomentum.y(), -nextMomentum.z());
-		nextTargetAxis = Vec3f(nextMomentum.x(), 0, nextMomentum.z()).cross(nextMomentum);
-		// Vec3f(-nextTargetAxis.x(), -nextTargetAxis.y(), nextTargetAxis.z());
+		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MIN - z + nearestZOffset.z()) / moveVector.z();
 		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MIN), COLLISION_WALL_NORMAL_Z);
@@ -261,15 +252,10 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		);
 	transform->setTranslation(newPosition);
 	if (collided) {
-		if (osgRad2Degree(currentAxis.enclosedAngle(nextTargetAxis)) > 180) {
-			nextTargetAxis.negate();
-		}
-		nextTargetAxis.normalize();
-		targetAxis = nextTargetAxis;
-		lastCollisionAxis = currentAxis;
+		lastCollisionAngle = targetAngle;
+		targetAngle = nextTargetAngle;
 		momentum = nextMomentum;
 		lastCollisionTime = glutGet(GLUT_ELAPSED_TIME);
-		std::cout << "axis: " << currentAxis << "    targetAxis: " << targetAxis << '\n';
 	}
 }
 

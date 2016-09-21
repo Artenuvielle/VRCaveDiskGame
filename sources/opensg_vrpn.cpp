@@ -181,19 +181,10 @@ void keyboard(unsigned char k, int x, int y)
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
 			break;
 		case 'x':
-			//createWallCollisionAnimation(Vec3f(0,135,20), 40, 40, Vec3f(-1,-1,-1), mainUserFaction);
-			//createWallCollisionAnimation(Vec3f(0,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
-			//createWallCollisionAnimation(Vec3f(136,135,-270), 50, 50, Vec3f(0,0,-1), mainUserFaction);
-			//createWallCollisionAnimation(Vec3f(150,270,-270), 50, 50, Vec3f(0,1,0), mainUserFaction);
 			initSimulation();
 			simStartTime = glutGet(GLUT_ELAPSED_TIME);
 			break;
 		case ' ':
-			//playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 250, -380), COLLISION_WALL_NORMAL_X);
-			//playerDisk->createAnimationAtCollisionPoint(Vec3f(135, 5, -940), COLLISION_WALL_NORMAL_X);
-			//playerDisk->createAnimationAtCollisionPoint(Vec3f(-135, 5, -900), COLLISION_WALL_NORMAL_X);
-			//diskDirection = Vec3f(0.5f,0.f,-1.f);
-			//diskDirection.normalize();
 			playerDisk->startDraw(Vec3f(-1,135,1));
 			playerDisk->setPosition(Vec3f(0,135,0));
 			playerDisk->endDraw(Vec3f(0,135,0));
@@ -235,7 +226,7 @@ void setupGLUT(int *argc, char *argv[])
 		
 		check_tracker();
 
-		/*/
+		/**/
 		if (simStartTime > 0) {
 			SimStep t = getSimulationStep(time - simStartTime + 14500);
 			wand_position = t.wand_position;

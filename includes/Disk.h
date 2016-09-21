@@ -41,19 +41,18 @@ public:
 	bool forceReturn();
 	void updatePosition();
 	Disk(PlayerFaction type);
-	void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
 private:
 	void moveDiskAtLeastUntilCollision(Real32 deltaTime);
-	//void interpolateMomentum(Vec3f directionToInterpolateTo, Real32 deltaTime, Real32 attractionFactor);
 	Vec3f calculateMovement(Real32 deltaTime);
-	//void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
+	void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
 	void createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal direction);
 	Vec3f momentum;
 	Vec3f targetOwnerPosition;
 	Vec3f targetEnemyPosition;
-	Vec3f targetAxis;
 	Vec3f currentAxis;
-	Vec3f lastCollisionAxis;
+	Real32 lastCollisionAngle;
+	Real32 currentAngle;
+	Real32 targetAngle;
 	Real32 lastCollisionTime;
 	Real32 rotationAroundAxis;
 	PlayerFaction diskType;
