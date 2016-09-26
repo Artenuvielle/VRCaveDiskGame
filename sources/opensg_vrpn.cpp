@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "BuildScene.h"
 #include "Disk.h"
+#include "Player.h"
 #include "Animations.h"
 #include "Simulation.h"
 
@@ -37,11 +38,13 @@ vrpn_Tracker_Remote* tracker =  nullptr;
 vrpn_Button_Remote* button = nullptr;
 vrpn_Analog_Remote* analog = nullptr;
 
-Disk* playerDisk;
+Disk *playerDisk;
+Player *user, *enemy;
 
 void cleanup()
 {
 	delete playerDisk;
+	delete user, enemy;
 	delete mgr;
 	delete tracker;
 	delete button;
@@ -221,6 +224,12 @@ void setupGLUT(int *argc, char *argv[])
 		playerDisk->setTargetOwnerPosition(wand_position);
 		playerDisk->setTargetEnemyPosition(enemyPoint->getTranslation());
 		playerDisk->updatePosition();
+		
+		user->update();
+
+		enemy->setHeadDirection(head_orientation);
+		enemy->setHeadPosition(head_position - Vec3f(0,135,0) + Vec3f(0,135,-810));
+		enemy->update();
 
 		updateAnimations();
 		
@@ -325,6 +334,8 @@ int main(int argc, char **argv)
 
 		initSimulation();
 		playerDisk = new Disk(mainUserFaction);
+		user = new Player(mainUserFaction, false);
+		enemy = new Player(enemyFaction, true);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );

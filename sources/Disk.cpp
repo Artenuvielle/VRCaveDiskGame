@@ -116,6 +116,7 @@ bool Disk::endDraw(Vec3f position) {
 		targetAngle = Vec3f(0,1,0).enclosedAngle(currentAxis);
 		lastCollisionAngle = targetAngle;
 		currentAngle = targetAngle;
+		axialRotationPerMillisecond = 0;
 		std::cout << "finished drawing a disk... LET IF FLYYYYYY" << '\n';
 		return true;
 	}
@@ -152,10 +153,15 @@ void Disk::updatePosition() {
 			Real32 angleDiff = targetAngle - lastCollisionAngle;
 			if (angleDiff < -180) angleDiff += 360;
 			if (angleDiff > 180) angleDiff -= 360;
-			Real32 newAngle = lastCollisionAngle + angleDiff * (time - lastCollisionTime) / (diskRotationTimeAfterCollision * 1000);
+			axialRotationPerMillisecond = angleDiff / (diskRotationTimeAfterCollision * 1000);
+			Real32 newAngle = lastCollisionAngle + axialRotationPerMillisecond * (time - lastCollisionTime);
 			axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
 			currentAngle = newAngle;
 		} else {
+			axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
+			targetAngle += axialRotationPerMillisecond * (time - lastCollisionTime);
+			if (targetAngle < -180) targetAngle += 360;
+			if (targetAngle > 180) targetAngle -= 360;
 			axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
 			currentAngle = targetAngle;
 		}

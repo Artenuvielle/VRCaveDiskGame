@@ -54,6 +54,7 @@ private:
 	Real32 currentAngle;
 	Real32 targetAngle;
 	Real32 lastCollisionTime;
+	Real32 axialRotationPerMillisecond;
 	Real32 rotationAroundAxis;
 	PlayerFaction diskType;
 	Vec3f lastPositionWhileDrawn;
