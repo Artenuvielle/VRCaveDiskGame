@@ -20,6 +20,8 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 	headDirection = Vec3f(0,1,0);
 	headDirection.normalize();
 	headPosition = Vec3f(0,170,30);
+	leftArmPosition = Vec3f(0,130,-800);
+	rightArmPosition = Vec3f(0,130,0);
 	if (faction == mainUserFaction) {
 		facingRotation = Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
 	} else {
@@ -29,16 +31,18 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 		torsoTransform = cloneModelWithTranform(playerModelTorso);
 		if (faction == PLAYER_FACTION_BLUE) {
 			headTransform = cloneModelWithTranform(playerModelHeadBlue);
-			leftHandTransform = cloneModelWithTranform(playerModelArmBlue);
-			rightHandTransform = cloneModelWithTranform(playerModelArmBlue);
+			leftArmTransform = cloneModelWithTranform(playerModelArmBlue);
+			rightArmTransform = cloneModelWithTranform(playerModelArmBlue);
 		} else {
 			headTransform = cloneModelWithTranform(playerModelHeadOrange);
-			leftHandTransform = cloneModelWithTranform(playerModelArmOrange);
-			rightHandTransform = cloneModelWithTranform(playerModelArmOrange);
+			leftArmTransform = cloneModelWithTranform(playerModelArmOrange);
+			rightArmTransform = cloneModelWithTranform(playerModelArmOrange);
 		}
 
 		torsoTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE) * 1.3);
 		headTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
+		leftArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
+		rightArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
 
 		recalculatePositions();
 
@@ -57,6 +61,8 @@ void Player::recalculatePositions() {
 		torsoTransform->setRotation(facingRotation);
 		headTransform->setTranslation(headPosition);
 		headTransform->setRotation(facingRotation * Quaternion(Vec3f(0,1,0),headDirection));
+		rightArmTransform->setTranslation(rightArmPosition);
+		rightArmTransform->setRotation(Quaternion(Vec3f(0,1,0),rightArmDirection));
 	}
 }
 
@@ -88,6 +94,10 @@ Vec3f Player::getLeftArmDirection() {
 	return leftArmDirection;
 }
 
+void Player::setLeftArmDirection(Quaternion rotation) {
+	rotation.multVec(Vec3f(0,1,0), leftArmDirection);
+}
+
 void Player::setLeftArmDirection(Vec3f newDirection) {
 	leftArmDirection = newDirection;
 }
@@ -102,6 +112,10 @@ void Player::setLeftArmPosition(Vec3f newPosition) {
 
 Vec3f Player::getRightArmDirection() {
 	return rightArmDirection;
+}
+
+void Player::setRightArmDirection(Quaternion rotation) {
+	rotation.multVec(Vec3f(0,1,0), rightArmDirection);
 }
 
 void Player::setRightArmDirection(Vec3f newDirection) {

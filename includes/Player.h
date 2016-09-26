@@ -25,10 +25,12 @@ public:
 	void setHeadPosition(Vec3f newPosition);
 	Vec3f getLeftArmDirection();
 	void setLeftArmDirection(Vec3f newDirection);
+	void setLeftArmDirection(Quaternion rotation);
 	Vec3f getLeftArmPosition();
 	void setLeftArmPosition(Vec3f newPosition);
 	Vec3f getRightArmDirection();
 	void setRightArmDirection(Vec3f newDirection);
+	void setRightArmDirection(Quaternion rotation);
 	Vec3f getRightArmPosition();
 	void setRightArmPosition(Vec3f newPosition);
 	Player(PlayerFaction faction, bool drawModel);
@@ -39,8 +41,8 @@ private:
 	Quaternion facingRotation;
 	ComponentTransformRecPtr torsoTransform;
 	ComponentTransformRecPtr headTransform;
-	ComponentTransformRecPtr leftHandTransform;
-	ComponentTransformRecPtr rightHandTransform;
+	ComponentTransformRecPtr leftArmTransform;
+	ComponentTransformRecPtr rightArmTransform;
 	Vec3f torsoPosition;
 	Vec3f headDirection;
 	Vec3f headPosition;

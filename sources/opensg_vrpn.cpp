@@ -229,6 +229,8 @@ void setupGLUT(int *argc, char *argv[])
 
 		enemy->setHeadDirection(head_orientation);
 		enemy->setHeadPosition(head_position - Vec3f(0,135,0) + Vec3f(0,135,-810));
+		enemy->setRightArmDirection(wand_orientation);
+		enemy->setRightArmPosition((wand_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
 		enemy->update();
 
 		updateAnimations();
