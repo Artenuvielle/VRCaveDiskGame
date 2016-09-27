@@ -39,7 +39,7 @@ public:
 	bool startDraw(Vec3f pos);
 	bool endDraw(Vec3f pos);
 	bool forceReturn();
-	void updatePosition();
+	void update();
 	Disk(PlayerFaction type);
 private:
 	void moveDiskAtLeastUntilCollision(Real32 deltaTime);

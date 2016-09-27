@@ -126,7 +126,7 @@ Vec3f Disk::calculateMovement(Real32 deltaTime) {
 
 const Real32 WALL_Z_DIFF = WALL_Z_MAX - WALL_Z_MIN;
 
-void Disk::updatePosition() {
+void Disk::update() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
 	if (state == DISK_STATE_FREE_FLY || state == DISK_STATE_RETURNING) {
@@ -136,11 +136,11 @@ void Disk::updatePosition() {
 		if (state == DISK_STATE_FREE_FLY) {
 			vectorToTarget = targetEnemyPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
-			forward = Vec3f(0,0,mainUserFaction == diskType ? -1 : 1);
+			forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
 		} else {
 			vectorToTarget = targetOwnerPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskOwnerMomentumAttractionFactor;
-			forward = Vec3f(0,0,mainUserFaction == diskType ? 1 : -1);
+			forward = Vec3f(0,0,userFaction == diskType ? 1 : -1);
 		}
 
 		Real32 targetProximity = 1 - (vectorToTarget.length() / WALL_Z_DIFF);
@@ -174,10 +174,10 @@ void Disk::updatePosition() {
 
 		moveDiskAtLeastUntilCollision(time - lastPositionUpdateTime);
 		if (state == DISK_STATE_RETURNING) {
-			if (diskType == mainUserFaction && transform->getTranslation().z() > targetOwnerPosition.z()) {
+			if (diskType == userFaction && transform->getTranslation().z() > targetOwnerPosition.z()) {
 				rotationAroundAxis = 0;
 				state = DISK_STATE_READY;
-			} else if(diskType != mainUserFaction && transform->getTranslation().z() < targetOwnerPosition.z()) {
+			} else if(diskType != userFaction && transform->getTranslation().z() < targetOwnerPosition.z()) {
 				rotationAroundAxis = 0;
 				state = DISK_STATE_READY;
 			}
@@ -236,7 +236,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MAX - z - nearestZOffset.z()) / moveVector.z();
 		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MAX), COLLISION_WALL_NORMAL_Z);
-		if (diskType != mainUserFaction) {
+		if (diskType != userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "enemy disk returning" << '\n';
 		}
@@ -246,7 +246,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MIN - z + nearestZOffset.z()) / moveVector.z();
 		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MIN), COLLISION_WALL_NORMAL_Z);
-		if (diskType == mainUserFaction) {
+		if (diskType == userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "player disk returning" << '\n';
 		}

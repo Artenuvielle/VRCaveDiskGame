@@ -15,13 +15,20 @@ OSG_USING_NAMESPACE
 	
 NodeRecPtr diskModelBlue;
 NodeRecPtr diskModelOrange;
+
 std::vector<ImageRecPtr> collisionImagesBlue;
 std::vector<ImageRecPtr> collisionImagesOrange;
+
 NodeRecPtr playerModelTorso;
 NodeRecPtr playerModelHeadBlue;
 NodeRecPtr playerModelHeadOrange;
 NodeRecPtr playerModelArmBlue;
 NodeRecPtr playerModelArmOrange;
+
+SimpleMaterialRecPtr shieldTorusMaterialBlue;
+SimpleMaterialRecPtr shieldTorusMaterialOrange;
+SimpleMaterialRecPtr shieldRingMaterialBlue;
+SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 
 NodeTransitPtr buildScene()
@@ -41,7 +48,6 @@ NodeTransitPtr buildScene()
 	boundingBoxModelTrans->addChild(boundingBoxModel);
 
 	root->addChild(boundingBoxModelTrans);
-	
 	
 	diskModelBlue = SceneFileHandler::the()->read("models/disk_blue.3DS");
 	diskModelOrange = SceneFileHandler::the()->read("models/disk_orange.3DS");
@@ -67,6 +73,35 @@ NodeTransitPtr buildScene()
 		image->read(s.str().c_str());
 		collisionImagesOrange.push_back(image);
 	}
+
+	shieldTorusMaterialBlue = SimpleMaterial::create();
+	shieldTorusMaterialBlue->setDiffuse(colorBlue);
+	shieldTorusMaterialBlue->setAmbient(colorBlue);
+	shieldTorusMaterialBlue->setLit(false);
+
+	shieldRingMaterialBlue = SimpleMaterial::create();
+	shieldRingMaterialBlue->setDiffuse(colorBlue);
+	shieldRingMaterialBlue->setAmbient(colorBlue);
+	shieldRingMaterialBlue->setTransparency(0.5);
+	shieldRingMaterialBlue->setLit(false);
+
+	shieldTorusMaterialOrange = SimpleMaterial::create();
+	shieldTorusMaterialOrange->setDiffuse(colorOrange);
+	shieldTorusMaterialOrange->setAmbient(colorOrange);
+	shieldTorusMaterialOrange->setLit(false);
+
+	shieldRingMaterialOrange = SimpleMaterial::create();
+	shieldRingMaterialOrange->setDiffuse(colorOrange);
+	shieldRingMaterialOrange->setAmbient(colorOrange);
+	shieldRingMaterialOrange->setTransparency(0.5);
+	shieldRingMaterialOrange->setLit(false);
+
+
+
+
+
+
+
 
 	enemyPoint = ComponentTransform::create();
 	enemyPoint->setTranslation(Vec3f(0,167,-900));

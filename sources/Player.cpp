@@ -17,12 +17,15 @@ ComponentTransformTransitPtr cloneModelWithTranform(NodeRecPtr modelToClone) {
 }
 
 Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel) {
-	headDirection = Vec3f(0,1,0);
-	headDirection.normalize();
+	headRotation = Quaternion();
 	headPosition = Vec3f(0,170,30);
-	leftArmPosition = Vec3f(0,130,-800);
-	rightArmPosition = Vec3f(0,130,0);
-	if (faction == mainUserFaction) {
+	diskArmPosition = Vec3f(20,130,50);
+	shieldArmPosition = Vec3f(-20,130,50);
+
+	disk = new Disk(faction);
+	shield = new Shield(faction);
+
+	if (faction == userFaction) {
 		facingRotation = Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
 	} else {
 		facingRotation = Quaternion();
@@ -31,18 +34,18 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 		torsoTransform = cloneModelWithTranform(playerModelTorso);
 		if (faction == PLAYER_FACTION_BLUE) {
 			headTransform = cloneModelWithTranform(playerModelHeadBlue);
-			leftArmTransform = cloneModelWithTranform(playerModelArmBlue);
-			rightArmTransform = cloneModelWithTranform(playerModelArmBlue);
+			diskArmTransform = cloneModelWithTranform(playerModelArmBlue);
+			shieldArmTransform = cloneModelWithTranform(playerModelArmBlue);
 		} else {
 			headTransform = cloneModelWithTranform(playerModelHeadOrange);
-			leftArmTransform = cloneModelWithTranform(playerModelArmOrange);
-			rightArmTransform = cloneModelWithTranform(playerModelArmOrange);
+			diskArmTransform = cloneModelWithTranform(playerModelArmOrange);
+			shieldArmTransform = cloneModelWithTranform(playerModelArmOrange);
 		}
 
 		torsoTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE) * 1.3);
 		headTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
-		leftArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
-		rightArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
+		diskArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
+		shieldArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
 
 		recalculatePositions();
 
@@ -50,19 +53,38 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 	}
 }
 
+Player::~Player() {
+	delete disk;
+	delete shield;
+}
+
 void Player::update() {
 	recalculatePositions();
+
+	disk->setPosition(diskArmPosition);
+	disk->setRotation(diskArmRotation);
+	disk->setTargetOwnerPosition(headPosition);
+	disk->setTargetEnemyPosition(enemyPoint->getTranslation());
+	disk->update();
+
+	shield->setPosition(shieldArmPosition);
+	shield->setRotation(shieldArmRotation);
+	shield->update();
 };
 
 void Player::recalculatePositions() {
+	Vec3f headDirection;
+	headRotation.multVec(Vec3f(0,1,0), headDirection);
 	torsoPosition = headPosition - headDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
 	if (modelIncluded) {
 		torsoTransform->setTranslation(torsoPosition);
 		torsoTransform->setRotation(facingRotation);
 		headTransform->setTranslation(headPosition);
-		headTransform->setRotation(facingRotation * Quaternion(Vec3f(0,1,0),headDirection));
-		rightArmTransform->setTranslation(rightArmPosition);
-		rightArmTransform->setRotation(Quaternion(Vec3f(0,1,0),rightArmDirection));
+		headTransform->setRotation(facingRotation * headRotation);
+		diskArmTransform->setTranslation(diskArmPosition);
+		diskArmTransform->setRotation(diskArmRotation);
+		shieldArmTransform->setTranslation(shieldArmPosition);
+		shieldArmTransform->setRotation(shieldArmRotation);
 	}
 }
 
@@ -70,16 +92,12 @@ Vec3f Player::getTorsoPosition() {
 	return torsoPosition;
 }
 
-Vec3f Player::getHeadDirection() {
-	return headDirection;
+Quaternion Player::getHeadRotation() {
+	return headRotation;
 }
 
-void Player::setHeadDirection(Vec3f newDirection) {
-	headDirection = newDirection;
-}
-
-void Player::setHeadDirection(Quaternion rotation) {
-	rotation.multVec(Vec3f(0,1,0), headDirection);
+void Player::setHeadRotation(Quaternion rotation) {
+	headRotation = rotation;
 }
 
 Vec3f Player::getHeadPosition() {
@@ -90,42 +108,42 @@ void Player::setHeadPosition(Vec3f newPosition) {
 	headPosition = newPosition;
 }
 
-Vec3f Player::getLeftArmDirection() {
-	return leftArmDirection;
+Quaternion Player::getDiskArmRotation() {
+	return diskArmRotation;
 }
 
-void Player::setLeftArmDirection(Quaternion rotation) {
-	rotation.multVec(Vec3f(0,1,0), leftArmDirection);
+void Player::setDiskArmRotation(Quaternion rotation) {
+	diskArmRotation = rotation;
 }
 
-void Player::setLeftArmDirection(Vec3f newDirection) {
-	leftArmDirection = newDirection;
+Vec3f Player::getDiskArmPosition() {
+	return diskArmPosition;
 }
 
-Vec3f Player::getLeftArmPosition() {
-	return leftArmPosition;
+void Player::setDiskArmPosition(Vec3f newPosition) {
+	diskArmPosition = newPosition;
 }
 
-void Player::setLeftArmPosition(Vec3f newPosition) {
-	leftArmPosition = newPosition;
+Quaternion Player::getShieldArmRotation() {
+	return shieldArmRotation;
 }
 
-Vec3f Player::getRightArmDirection() {
-	return rightArmDirection;
+void Player::setShieldArmRotation(Quaternion rotation) {
+	shieldArmRotation = rotation;
 }
 
-void Player::setRightArmDirection(Quaternion rotation) {
-	rotation.multVec(Vec3f(0,1,0), rightArmDirection);
+Vec3f Player::getShieldArmPosition() {
+	return shieldArmPosition;
 }
 
-void Player::setRightArmDirection(Vec3f newDirection) {
-	rightArmDirection = newDirection;
+void Player::setShieldArmPosition(Vec3f newPosition) {
+	shieldArmPosition = newPosition;
 }
 
-Vec3f Player::getRightArmPosition() {
-	return rightArmPosition;
+Disk* Player::getDisk() {
+	return disk;
 }
 
-void Player::setRightArmPosition(Vec3f newPosition) {
-	rightArmPosition = newPosition;
+Shield* Player::getShield() {
+	return shield;
 }

@@ -38,12 +38,10 @@ vrpn_Tracker_Remote* tracker =  nullptr;
 vrpn_Button_Remote* button = nullptr;
 vrpn_Analog_Remote* analog = nullptr;
 
-Disk *playerDisk;
 Player *user, *enemy;
 
 void cleanup()
 {
-	delete playerDisk;
 	delete user, enemy;
 	delete mgr;
 	delete tracker;
@@ -96,12 +94,12 @@ void VRPN_CALLBACK callback_button(void* userData, const vrpn_BUTTONCB button)
 {
 	if (button.button == 0) {
 		if (button.state == 1) {
-			if(playerDisk->getState() == DISK_STATE_READY) {
-				playerDisk->startDraw(wand_position);
+			if(user->getDisk()->getState() == DISK_STATE_READY) {
+				user->getDisk()->startDraw(wand_position);
 			}
 		} else {
-			if(playerDisk->getState() == DISK_STATE_DRAWN) {
-				playerDisk->endDraw(wand_position);
+			if(user->getDisk()->getState() == DISK_STATE_DRAWN) {
+				user->getDisk()->endDraw(wand_position);
 			}
 		}
 	}
@@ -197,9 +195,9 @@ void keyboard(unsigned char k, int x, int y)
 			simStartTime = glutGet(GLUT_ELAPSED_TIME);
 			break;
 		case ' ':
-			playerDisk->startDraw(Vec3f(-1,135,1));
-			playerDisk->setPosition(Vec3f(0,135,0));
-			playerDisk->endDraw(Vec3f(0,135,0));
+			user->getDisk()->startDraw(Vec3f(-1,135,1));
+			user->getDisk()->setPosition(Vec3f(0,135,0));
+			user->getDisk()->endDraw(Vec3f(0,135,0));
 			break;
 		default:
 			std::cout << "Key '" << k << "' ignored\n";
@@ -228,18 +226,20 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		int time = glutGet(GLUT_ELAPSED_TIME);
 
-		playerDisk->setPosition(wand_position);
-		playerDisk->setRotation(wand_orientation);
-		playerDisk->setTargetOwnerPosition(wand_position);
-		playerDisk->setTargetEnemyPosition(enemyPoint->getTranslation());
-		playerDisk->updatePosition();
-		
+		user->setHeadRotation(head_orientation);
+		user->setHeadPosition(head_position);
+		user->setDiskArmRotation(wand_orientation);
+		user->setDiskArmPosition(wand_position);
+		user->setShieldArmRotation(shield_orientation);
+		user->setShieldArmPosition(shield_position);
 		user->update();
 
-		enemy->setHeadDirection(head_orientation);
+		enemy->setHeadRotation(head_orientation);
 		enemy->setHeadPosition(head_position - Vec3f(0,135,0) + Vec3f(0,135,-810));
-		enemy->setRightArmDirection(wand_orientation);
-		enemy->setRightArmPosition((wand_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
+		enemy->setDiskArmRotation(wand_orientation);
+		enemy->setDiskArmPosition((wand_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
+		enemy->setShieldArmRotation(shield_orientation);
+		enemy->setShieldArmPosition((shield_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
 		enemy->update();
 
 		updateAnimations();
@@ -255,12 +255,12 @@ void setupGLUT(int *argc, char *argv[])
 			head_orientation = t.head_orientation;
 			InputStep i = getInputStep(time - simStartTime + 14500);
 			if (i.buttonPushed) {
-				if(playerDisk->getState() == DISK_STATE_READY) {
-					playerDisk->startDraw(wand_position);
+				if(user->getDisk()->getState() == DISK_STATE_READY) {
+					user->getDisk()->startDraw(wand_position);
 				}
 			} else {
-				if(playerDisk->getState() == DISK_STATE_DRAWN) {
-					playerDisk->endDraw(wand_position);
+				if(user->getDisk()->getState() == DISK_STATE_DRAWN) {
+					user->getDisk()->endDraw(wand_position);
 				}
 			}
 		}
@@ -344,8 +344,7 @@ int main(int argc, char **argv)
 		commitChanges();
 
 		initSimulation();
-		playerDisk = new Disk(mainUserFaction);
-		user = new Player(mainUserFaction, false);
+		user = new Player(userFaction, false);
 		enemy = new Player(enemyFaction, true);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);

@@ -14,13 +14,20 @@ OSG_USING_NAMESPACE
 
 extern NodeRecPtr diskModelBlue;
 extern NodeRecPtr diskModelOrange;
+
 extern std::vector<ImageRecPtr> collisionImagesBlue;
 extern std::vector<ImageRecPtr> collisionImagesOrange;
+
 extern NodeRecPtr playerModelTorso;
 extern NodeRecPtr playerModelHeadBlue;
 extern NodeRecPtr playerModelHeadOrange;
 extern NodeRecPtr playerModelArmBlue;
 extern NodeRecPtr playerModelArmOrange;
+
+extern SimpleMaterialRecPtr shieldTorusMaterialBlue;
+extern SimpleMaterialRecPtr shieldTorusMaterialOrange;
+extern SimpleMaterialRecPtr shieldRingMaterialBlue;
+extern SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 extern NodeTransitPtr buildScene();
 

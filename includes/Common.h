@@ -15,8 +15,11 @@ enum PlayerFaction {
 	PLAYER_FACTION_ORANGE
 };
 
-const PlayerFaction mainUserFaction = PLAYER_FACTION_BLUE;
-const PlayerFaction enemyFaction = (mainUserFaction == PLAYER_FACTION_BLUE ? PLAYER_FACTION_ORANGE : PLAYER_FACTION_BLUE);
+const PlayerFaction userFaction = PLAYER_FACTION_BLUE;
+const PlayerFaction enemyFaction = (userFaction == PLAYER_FACTION_BLUE ? PLAYER_FACTION_ORANGE : PLAYER_FACTION_BLUE);
+
+const Color3f colorBlue(0, 172.f / 255.f, 198.f / 255.f);
+const Color3f colorOrange(0, 172.f / 255.f, 198.f / 255.f);
 
 const Real32 WALL_X_MAX = 135;
 const Real32 WALL_X_MIN = -135;

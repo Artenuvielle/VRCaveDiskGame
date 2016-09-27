@@ -8,6 +8,8 @@
 #include <OSGCSM/OSGCAVESceneManager.h>
 
 #include "Common.h"
+#include "Disk.h"
+#include "Shield.h"
 
 OSG_USING_NAMESPACE
 
@@ -18,38 +20,40 @@ const Real32 PLAYER_GEOMETRY_SCALE = 2;
 class Player {
 public:
 	Vec3f getTorsoPosition();
-	Vec3f getHeadDirection();
-	void setHeadDirection(Vec3f newDirection);
-	void setHeadDirection(Quaternion rotation);
+	Quaternion getHeadRotation();
+	void setHeadRotation(Quaternion rotation);
 	Vec3f getHeadPosition();
 	void setHeadPosition(Vec3f newPosition);
-	Vec3f getLeftArmDirection();
-	void setLeftArmDirection(Vec3f newDirection);
-	void setLeftArmDirection(Quaternion rotation);
-	Vec3f getLeftArmPosition();
-	void setLeftArmPosition(Vec3f newPosition);
-	Vec3f getRightArmDirection();
-	void setRightArmDirection(Vec3f newDirection);
-	void setRightArmDirection(Quaternion rotation);
-	Vec3f getRightArmPosition();
-	void setRightArmPosition(Vec3f newPosition);
+	Quaternion getDiskArmRotation();
+	void setDiskArmRotation(Quaternion rotation);
+	Vec3f getDiskArmPosition();
+	void setDiskArmPosition(Vec3f newPosition);
+	Quaternion getShieldArmRotation();
+	void setShieldArmRotation(Quaternion rotation);
+	Vec3f getShieldArmPosition();
+	void setShieldArmPosition(Vec3f newPosition);
+	Disk* getDisk();
+	Shield* getShield();
 	Player(PlayerFaction faction, bool drawModel);
+	~Player();
 	void update();
 private:
 	void recalculatePositions();
 	bool modelIncluded;
+	Disk* disk;
+	Shield* shield;
 	Quaternion facingRotation;
 	ComponentTransformRecPtr torsoTransform;
 	ComponentTransformRecPtr headTransform;
-	ComponentTransformRecPtr leftArmTransform;
-	ComponentTransformRecPtr rightArmTransform;
+	ComponentTransformRecPtr diskArmTransform;
+	ComponentTransformRecPtr shieldArmTransform;
 	Vec3f torsoPosition;
-	Vec3f headDirection;
+	Quaternion headRotation;
 	Vec3f headPosition;
-	Vec3f leftArmDirection;
-	Vec3f leftArmPosition;
-	Vec3f rightArmDirection;
-	Vec3f rightArmPosition;
+	Quaternion diskArmRotation;
+	Vec3f diskArmPosition;
+	Quaternion shieldArmRotation;
+	Vec3f shieldArmPosition;
 };
 
 #endif
