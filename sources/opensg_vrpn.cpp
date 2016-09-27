@@ -71,10 +71,18 @@ void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tr
 
 auto wand_orientation = Quaternion();
 auto wand_position = Vec3f(0,135,0);
+auto shield_orientation = Quaternion();
+auto shield_position = Vec3f(0,135,0);
 void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
 	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
 	wand_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
+}
+
+void VRPN_CALLBACK callback_shield_tracker(void* userData, const vrpn_TRACKERCB tracker)
+{
+	shield_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
+	shield_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
 }
 
 auto analog_values = Vec3f();
@@ -108,6 +116,7 @@ void InitTracker(OSGCSM::CAVEConfig &cfg)
 		tracker->shutup = true;
 		tracker->register_change_handler(NULL, callback_head_tracker, cfg.getSensorIDHead());
 		tracker->register_change_handler(NULL, callback_wand_tracker, cfg.getSensorIDController());
+		tracker->register_change_handler(NULL, callback_shield_tracker, 2);
 		button = new vrpn_Button_Remote(vrpn_name);
 		button->shutup = true;
 		button->register_change_handler(nullptr, callback_button);
@@ -219,8 +228,8 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		int time = glutGet(GLUT_ELAPSED_TIME);
 
-		playerDisk->setPosition(wand_position);
-		playerDisk->setRotation(wand_orientation);
+		playerDisk->setPosition(shield_position);
+		playerDisk->setRotation(shield_orientation);
 		playerDisk->setTargetOwnerPosition(wand_position);
 		playerDisk->setTargetEnemyPosition(enemyPoint->getTranslation());
 		playerDisk->updatePosition();
