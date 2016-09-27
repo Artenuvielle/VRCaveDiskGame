@@ -228,8 +228,8 @@ void setupGLUT(int *argc, char *argv[])
 		// get the time since the application started
 		int time = glutGet(GLUT_ELAPSED_TIME);
 
-		playerDisk->setPosition(shield_position);
-		playerDisk->setRotation(shield_orientation);
+		playerDisk->setPosition(wand_position);
+		playerDisk->setRotation(wand_orientation);
 		playerDisk->setTargetOwnerPosition(wand_position);
 		playerDisk->setTargetEnemyPosition(enemyPoint->getTranslation());
 		playerDisk->updatePosition();
