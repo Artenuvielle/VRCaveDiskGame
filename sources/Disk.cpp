@@ -10,6 +10,7 @@ OSG_USING_NAMESPACE
 
 const Real32 diskEnemyMomentumAttractionFactor = 0.8f; // deg/sec
 const Real32 diskOwnerMomentumAttractionFactor = 1.0f; // deg/sec
+const Real32 minimalAxialRotationAfterCollision = 0.0005f; // deg/millisec
 
 Quaternion interpolateVector(Vec3f vec1, Vec3f vec2, Real32 factor);
 
@@ -113,6 +114,7 @@ bool Disk::endDraw(Vec3f position) {
 	if(state == DISK_STATE_DRAWN) {
 		state = DISK_STATE_FREE_FLY;
 		momentum.normalize();
+		transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
 		targetAngle = Vec3f(0,1,0).enclosedAngle(currentAxis);
 		lastCollisionAngle = targetAngle;
 		currentAngle = targetAngle;
@@ -158,8 +160,14 @@ void Disk::updatePosition() {
 			axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
 			currentAngle = newAngle;
 		} else {
-			axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
+			if (osgAbs(axialRotationPerMillisecond) > minimalAxialRotationAfterCollision) {
+				axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
+				if (osgAbs(axialRotationPerMillisecond) < minimalAxialRotationAfterCollision * 1.1) {
+					axialRotationPerMillisecond = osgSgn(axialRotationPerMillisecond) * minimalAxialRotationAfterCollision;
+				}
+			}
 			targetAngle += axialRotationPerMillisecond * (time - lastCollisionTime);
+			std::cout << "targetangle: " << targetAngle << '\n';
 			if (targetAngle < -180) targetAngle += 360;
 			if (targetAngle > 180) targetAngle -= 360;
 			axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
