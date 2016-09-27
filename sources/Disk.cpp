@@ -8,10 +8,6 @@
 
 OSG_USING_NAMESPACE
 
-const Real32 diskEnemyMomentumAttractionFactor = 1.2f; // deg/sec
-const Real32 diskOwnerMomentumAttractionFactor = 1.5f; // deg/sec
-const Real32 minimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
-
 Quaternion interpolateVector(Vec3f vec1, Vec3f vec2, Real32 factor);
 
 Disk::Disk(PlayerFaction type) {
@@ -159,14 +155,13 @@ void Disk::updatePosition() {
 			axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
 			currentAngle = newAngle;
 		} else {
-			if (osgAbs(axialRotationPerMillisecond) > minimalAxialRotationAfterCollision) {
+			if (osgAbs(axialRotationPerMillisecond) > diskMinimalAxialRotationAfterCollision) {
 				axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
-				if (osgAbs(axialRotationPerMillisecond) < minimalAxialRotationAfterCollision * 1.1) {
-					axialRotationPerMillisecond = osgSgn(axialRotationPerMillisecond) * minimalAxialRotationAfterCollision;
+				if (osgAbs(axialRotationPerMillisecond) < diskMinimalAxialRotationAfterCollision * 1.1) {
+					axialRotationPerMillisecond = osgSgn(axialRotationPerMillisecond) * diskMinimalAxialRotationAfterCollision;
 				}
 			}
 			targetAngle += axialRotationPerMillisecond * (time - lastCollisionTime);
-			std::cout << "targetangle: " << targetAngle << '\n';
 			if (targetAngle < -180) targetAngle += 360;
 			if (targetAngle > 180) targetAngle -= 360;
 			axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
@@ -175,7 +170,7 @@ void Disk::updatePosition() {
 		Quaternion rotation = interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity);
 		rotation.multVec(momentum, momentum);
 		Quaternion aroundAxisRotation(Vec3f(0,-1,0), osgDegree2Rad((time - lastPositionUpdateTime) * rotationAroundAxis / 1000 * diskAxisRotationFactor));
-		transform->setRotation(Quaternion(forward, momentum) * /*transform->getRotation() * */ axisRotation * aroundAxisRotation/**/);
+		transform->setRotation(Quaternion(forward, momentum) * axisRotation * aroundAxisRotation);
 
 		moveDiskAtLeastUntilCollision(time - lastPositionUpdateTime);
 		if (state == DISK_STATE_RETURNING) {
