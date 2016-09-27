@@ -116,7 +116,7 @@ void InitTracker(OSGCSM::CAVEConfig &cfg)
 		tracker->shutup = true;
 		tracker->register_change_handler(NULL, callback_head_tracker, cfg.getSensorIDHead());
 		tracker->register_change_handler(NULL, callback_wand_tracker, cfg.getSensorIDController());
-		tracker->register_change_handler(NULL, callback_shield_tracker, 2);
+		tracker->register_change_handler(NULL, callback_shield_tracker, 3);
 		button = new vrpn_Button_Remote(vrpn_name);
 		button->shutup = true;
 		button->register_change_handler(nullptr, callback_button);
