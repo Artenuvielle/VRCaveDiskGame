@@ -8,9 +8,9 @@
 
 OSG_USING_NAMESPACE
 
-const Real32 diskEnemyMomentumAttractionFactor = 0.8f; // deg/sec
-const Real32 diskOwnerMomentumAttractionFactor = 1.0f; // deg/sec
-const Real32 minimalAxialRotationAfterCollision = 0.0005f; // deg/millisec
+const Real32 diskEnemyMomentumAttractionFactor = 1.2f; // deg/sec
+const Real32 diskOwnerMomentumAttractionFactor = 1.5f; // deg/sec
+const Real32 minimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
 
 Quaternion interpolateVector(Vec3f vec1, Vec3f vec2, Real32 factor);
 
@@ -114,8 +114,7 @@ bool Disk::endDraw(Vec3f position) {
 	if(state == DISK_STATE_DRAWN) {
 		state = DISK_STATE_FREE_FLY;
 		momentum.normalize();
-		transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
-		targetAngle = Vec3f(0,1,0).enclosedAngle(currentAxis);
+		targetAngle = osgRad2Degree(Vec3f(0,1,0).enclosedAngle(currentAxis));
 		lastCollisionAngle = targetAngle;
 		currentAngle = targetAngle;
 		axialRotationPerMillisecond = 0;
