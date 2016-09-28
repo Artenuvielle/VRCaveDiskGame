@@ -25,11 +25,6 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 	disk = new Disk(faction);
 	shield = new Shield(faction);
 
-	if (faction == userFaction) {
-		facingRotation = Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
-	} else {
-		facingRotation = Quaternion();
-	}
 	if (drawModel) {
 		torsoTransform = cloneModelWithTranform(playerModelTorso);
 		if (faction == PLAYER_FACTION_BLUE) {
@@ -73,14 +68,16 @@ void Player::update() {
 };
 
 void Player::recalculatePositions() {
-	Vec3f headDirection;
-	headRotation.multVec(Vec3f(0,1,0), headDirection);
-	torsoPosition = headPosition - headDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
+	Vec3f headYAxisDirection;
+	headRotation.multVec(Vec3f(0,1,0), headYAxisDirection);
+	torsoPosition = headPosition - headYAxisDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
 	if (modelIncluded) {
 		torsoTransform->setTranslation(torsoPosition);
-		torsoTransform->setRotation(facingRotation);
+		Real32 headYAxisRotation;
+		headRotation.getValueAsAxisRad(Vec3f(0,1,0), headYAxisRotation);
+		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headYAxisRotation));
 		headTransform->setTranslation(headPosition);
-		headTransform->setRotation(facingRotation * headRotation);
+		headTransform->setRotation(headRotation);
 		diskArmTransform->setTranslation(diskArmPosition);
 		diskArmTransform->setRotation(diskArmRotation);
 		shieldArmTransform->setTranslation(shieldArmPosition);

@@ -42,7 +42,6 @@ private:
 	bool modelIncluded;
 	Disk* disk;
 	Shield* shield;
-	Quaternion facingRotation;
 	ComponentTransformRecPtr torsoTransform;
 	ComponentTransformRecPtr headTransform;
 	ComponentTransformRecPtr diskArmTransform;
