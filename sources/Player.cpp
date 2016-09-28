@@ -73,9 +73,9 @@ void Player::recalculatePositions() {
 	torsoPosition = headPosition - headYAxisDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
 	if (modelIncluded) {
 		torsoTransform->setTranslation(torsoPosition);
-		Real32 headYAxisRotation;
-		headRotation.getValueAsAxisRad(Vec3f(0,1,0), headYAxisRotation);
-		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headYAxisRotation));
+		Vec3f headEulerAxisRotation;
+		headRotation.getEulerAngleRad(headEulerAxisRotation);
+		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headEulerAxisRotation.y()));
 		headTransform->setTranslation(headPosition);
 		headTransform->setRotation(headRotation);
 		diskArmTransform->setTranslation(diskArmPosition);
