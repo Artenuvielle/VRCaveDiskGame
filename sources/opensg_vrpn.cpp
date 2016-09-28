@@ -86,9 +86,6 @@ void VRPN_CALLBACK callback_shield_tracker(void* userData, const vrpn_TRACKERCB 
 	Vec3f shield_up;
 	shield_orientation.multVec(Vec3f(0,1,0), shield_up);
 	shield_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos))) - shield_up * 5;
-
-	testTrans->setTranslation(shield_position);
-	testTrans->setRotation(shield_orientation);
 }
 
 auto analog_values = Vec3f();

@@ -137,7 +137,7 @@ NodeTransitPtr buildScene()
 	//testTrans->setRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)) * Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)));
 	NodeRecPtr testTransNode = makeNodeFor(testTrans);
 	testTransNode->addChild(testModel);
-	root->addChild(testTransNode);
+	//root->addChild(testTransNode);
 	
 	ShaderProgramRefPtr vpPPL = ShaderProgram::createVertexShader();
 	ShaderProgramRefPtr fpPPL = ShaderProgram::createFragmentShader();
