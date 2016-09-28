@@ -62,7 +62,7 @@ void Player::update() {
 
 	shield->setPosition(shieldArmPosition + shieldArmUp * 6.5);
 	shield->setRotation(shieldArmRotation);
-	shield->update(disk->getPosition());
+	shield->update(enemy->getDisk()->getPosition());
 
 	disk->setPosition(diskArmPosition + diskArmUp * 6.5);
 	disk->setRotation(diskArmRotation);
