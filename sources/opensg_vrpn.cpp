@@ -29,6 +29,7 @@
 #include "Player.h"
 #include "Animations.h"
 #include "Simulation.h"
+#include "ArtificialIntelligence.h"
 
 OSG_USING_NAMESPACE
 
@@ -39,9 +40,11 @@ vrpn_Button_Remote* button = nullptr;
 vrpn_Analog_Remote* analog = nullptr;
 
 Player *user, *enemy;
+AI *ai;
 
 void cleanup()
 {
+	delete ai;
 	delete user, enemy;
 	delete mgr;
 	delete tracker;
@@ -234,12 +237,13 @@ void setupGLUT(int *argc, char *argv[])
 		user->setShieldArmPosition(shield_position);
 		user->update();
 
-		enemy->setHeadRotation(head_orientation);
+		/*enemy->setHeadRotation(head_orientation);
 		enemy->setHeadPosition(head_position - Vec3f(0,135,0) + Vec3f(0,135,-810));
 		enemy->setDiskArmRotation(wand_orientation);
 		enemy->setDiskArmPosition((wand_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
 		enemy->setShieldArmRotation(shield_orientation);
-		enemy->setShieldArmPosition((shield_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
+		enemy->setShieldArmPosition((shield_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));*/
+		ai->update();
 		enemy->update();
 
 		updateAnimations();
@@ -348,6 +352,7 @@ int main(int argc, char **argv)
 		enemy = new Player(enemyFaction, true);
 		user->setEnemy(enemy);
 		enemy->setEnemy(user);
+		ai = new AI(enemy);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );

@@ -79,9 +79,15 @@ void Player::recalculatePositions() {
 		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headEulerAxisRotation.y()));
 		headTransform->setTranslation(headPosition);
 		headTransform->setRotation(headRotation);
-		diskArmTransform->setTranslation(diskArmPosition);
+		Vec3f diskArmDown, shieldArmDown;
+		Vec3f diskArmForward, shieldArmForward;
+		diskArmRotation.multVec(Vec3f(0,-1,0), diskArmDown);
+		shieldArmRotation.multVec(Vec3f(0,-1,0), shieldArmDown);
+		diskArmRotation.multVec(Vec3f(0,0,1), diskArmForward);
+		shieldArmRotation.multVec(Vec3f(0,0,1), shieldArmForward);
+		diskArmTransform->setTranslation(diskArmPosition + diskArmDown * 6.5 - diskArmForward * 7.5);
 		diskArmTransform->setRotation(diskArmRotation);
-		shieldArmTransform->setTranslation(shieldArmPosition);
+		shieldArmTransform->setTranslation(shieldArmPosition + shieldArmDown * 6.5 - shieldArmForward * 7.5);
 		shieldArmTransform->setRotation(shieldArmRotation);
 	}
 }

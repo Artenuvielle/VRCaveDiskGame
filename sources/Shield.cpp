@@ -55,7 +55,6 @@ void Shield::update(Vec3f enemyDiskPosition) {
 	} else {
 		setRadius(shieldMinimumRadius);
 	}
-	std::cout << distance << '\n';
 }
 
 void Shield::setPosition(Vec3f newPosition) {
