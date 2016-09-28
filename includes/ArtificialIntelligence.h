@@ -22,6 +22,13 @@ public:
 private:
 	Player* me;
 	AIState state;
+	Vec3f targetHeadPosition;
+	Vec3f targetDiskArmPosition;
+	Vec3f targetShieldArmPosition;
+	Quaternion targetHeadRotation;
+	Quaternion targetDiskArmRotation;
+	Quaternion targetShieldArmRotation;
+	void updateActualPositions();
 };
 
 #endif

@@ -13,10 +13,6 @@
 
 OSG_USING_NAMESPACE
 
-const Real32 PLAYER_HEAD_SIZE = 15;
-const Real32 PLAYER_TORSO_HEAD_OFFSET = 10;
-const Real32 PLAYER_GEOMETRY_SCALE = 2;
-
 class Player {
 public:
 	Player* getEnemy();

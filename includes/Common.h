@@ -19,7 +19,7 @@ const PlayerFaction userFaction = PLAYER_FACTION_BLUE;
 const PlayerFaction enemyFaction = (userFaction == PLAYER_FACTION_BLUE ? PLAYER_FACTION_ORANGE : PLAYER_FACTION_BLUE);
 
 const Color3f colorBlue(0, 172.f / 255.f, 198.f / 255.f);
-const Color3f colorOrange(0, 172.f / 255.f, 198.f / 255.f);
+const Color3f colorOrange(198.f / 255.f, 123.f / 255.f, 5.f / 255.f);
 
 const Real32 WALL_X_MAX = 135;
 const Real32 WALL_X_MIN = -135;
@@ -27,6 +27,10 @@ const Real32 WALL_Y_MAX = 270;
 const Real32 WALL_Y_MIN = 0;
 const Real32 WALL_Z_MAX = 135;
 const Real32 WALL_Z_MIN = -945;
+
+const Real32 PLAYER_HEAD_SIZE = 15;
+const Real32 PLAYER_TORSO_HEAD_OFFSET = 10;
+const Real32 PLAYER_GEOMETRY_SCALE = 2;
 
 const Real32 diskRadius = 15; // cm
 const Real32 diskHeight = 3; // cm
