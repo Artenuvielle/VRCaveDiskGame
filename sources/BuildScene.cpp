@@ -1,5 +1,11 @@
 #include "BuildScene.h"
 
+#include <sys/stat.h> // stat
+#include <errno.h>    // errno, ENOENT, EEXIST
+#if defined(_WIN32)
+#include <direct.h>   // _mkdir
+#endif
+
 #include <OpenSG/OSGSceneFileHandler.h>
 
 #include <OpenSG/OSGGeoBuilder.h>
@@ -32,13 +38,96 @@ SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 ComponentTransformRecPtr testTrans;
 
+const Char8 *cachePrefix = "cache/";
+
+bool isFileExist(const Char8 *fileName) {
+    std::ifstream infile(fileName);
+    return infile.good();
+}
+
+bool isDirExist(const std::string& path)
+{
+#if defined(_WIN32)
+    struct _stat info;
+    if (_stat(path.c_str(), &info) != 0)
+    {
+        return false;
+    }
+    return (info.st_mode & _S_IFDIR) != 0;
+#else 
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+    {
+        return false;
+    }
+    return (info.st_mode & S_IFDIR) != 0;
+#endif
+}
+
+bool makePath(const std::string& path)
+{
+#if defined(_WIN32)
+    int ret = _mkdir(path.c_str());
+#else
+    mode_t mode = 0755;
+    int ret = mkdir(path.c_str(), mode);
+#endif
+    if (ret == 0)
+        return true;
+
+    switch (errno)
+    {
+    case ENOENT:
+        // parent didn't exist, try to create it
+        {
+            int pos = path.find_last_of('/');
+            if (pos == std::string::npos)
+#if defined(_WIN32)
+                pos = path.find_last_of('\\');
+            if (pos == std::string::npos)
+#endif
+                return false;
+            if (!makePath( path.substr(0, pos) ))
+                return false;
+        }
+        // now, try to create again
+#if defined(_WIN32)
+        return 0 == _mkdir(path.c_str());
+#else 
+        return 0 == mkdir(path.c_str(), mode);
+#endif
+
+    case EEXIST:
+        return isDirExist(path);
+
+    default:
+        return false;
+    }
+}
+
+NodeTransitPtr loadModelFromCache(const Char8 *filename, const Char8 *fileExtension) {
+	std::stringstream cacheFileName;
+	cacheFileName << cachePrefix << filename << ".OSB";
+	if (isFileExist(cacheFileName.str().c_str())) {
+        std::cout << "File '" << cacheFileName.str() << "' loaded" << std::endl;
+		return SceneFileHandler::the()->read(cacheFileName.str().c_str());
+	} else {
+		std::stringstream fullPath;
+		fullPath << filename << fileExtension;
+		NodeRecPtr temp = SceneFileHandler::the()->read(fullPath.str().c_str());
+		makePath(cacheFileName.str().substr(0, cacheFileName.str().find_last_of('/')));
+		SceneFileHandler::the()->write(temp, cacheFileName.str().c_str());
+        std::cout << "File '" << cacheFileName.str() << "' written" << std::endl;
+		return NodeTransitPtr(temp);
+	}
+}
 
 NodeTransitPtr buildScene()
 {
 	root = Node::create();
 	root->setCore(Group::create());
 	
-	boundingBoxModel = SceneFileHandler::the()->read("models/bbox.3DS");
+	boundingBoxModel = loadModelFromCache("models/bbox", ".3DS");
 	
 	/*ComponentTransformRecPtr */boundingBoxModelCT = ComponentTransform::create();
 	boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
@@ -51,13 +140,13 @@ NodeTransitPtr buildScene()
 
 	root->addChild(boundingBoxModelTrans);
 	
-	diskModelBlue = SceneFileHandler::the()->read("models/disk_blue.3DS");
-	diskModelOrange = SceneFileHandler::the()->read("models/disk_orange.3DS");
-	playerModelTorso = SceneFileHandler::the()->read("models/robot_torso.OBJ");
-	playerModelHeadBlue = SceneFileHandler::the()->read("models/robot_head_blue.OBJ");
-	playerModelHeadOrange = SceneFileHandler::the()->read("models/robot_head_orange.OBJ");
-	playerModelArmBlue = SceneFileHandler::the()->read("models/robot_arm_blue.OBJ");
-	playerModelArmOrange = SceneFileHandler::the()->read("models/robot_arm_orange.OBJ");
+	diskModelBlue = loadModelFromCache("models/disk_blue", ".3DS");
+	diskModelOrange = loadModelFromCache("models/disk_orange", ".3DS");
+	playerModelTorso = loadModelFromCache("models/robot_torso", ".OBJ");
+	playerModelHeadBlue = loadModelFromCache("models/robot_head_blue", ".OBJ");
+	playerModelHeadOrange = loadModelFromCache("models/robot_head_orange", ".OBJ");
+	playerModelArmBlue = loadModelFromCache("models/robot_arm_blue", ".OBJ");
+	playerModelArmOrange = loadModelFromCache("models/robot_arm_orange", ".OBJ");
 
 
 	for (int i = 0; i < 25; i++) {
