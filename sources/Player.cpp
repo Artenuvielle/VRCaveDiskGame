@@ -56,12 +56,15 @@ Player::~Player() {
 
 void Player::update() {
 	recalculatePositions();
+	Vec3f diskArmUp, shieldArmUp;
+	diskArmRotation.multVec(Vec3f(0,1,0), diskArmUp);
+	shieldArmRotation.multVec(Vec3f(0,1,0), shieldArmUp);
 
-	shield->setPosition(shieldArmPosition);
+	shield->setPosition(shieldArmPosition + shieldArmUp * 6.5);
 	shield->setRotation(shieldArmRotation);
 	shield->update(disk->getPosition());
 
-	disk->setPosition(diskArmPosition);
+	disk->setPosition(diskArmPosition + diskArmUp * 6.5);
 	disk->setRotation(diskArmRotation);
 	disk->setTargetOwnerPosition(headPosition);
 	disk->setTargetEnemyPosition(enemyPoint->getTranslation());
@@ -79,15 +82,12 @@ void Player::recalculatePositions() {
 		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headEulerAxisRotation.y()));
 		//headTransform->setTranslation(headPosition);
 		//headTransform->setRotation(headRotation);
-		Vec3f diskArmDown, shieldArmDown;
 		Vec3f diskArmForward, shieldArmForward;
-		diskArmRotation.multVec(Vec3f(0,-1,0), diskArmDown);
-		shieldArmRotation.multVec(Vec3f(0,-1,0), shieldArmDown);
 		diskArmRotation.multVec(Vec3f(0,0,1), diskArmForward);
 		shieldArmRotation.multVec(Vec3f(0,0,1), shieldArmForward);
-		diskArmTransform->setTranslation(diskArmPosition + diskArmDown * 6.5 - diskArmForward * 7.5);
+		diskArmTransform->setTranslation(diskArmPosition - diskArmForward * 7.5);
 		diskArmTransform->setRotation(diskArmRotation);
-		shieldArmTransform->setTranslation(shieldArmPosition + shieldArmDown * 6.5 - shieldArmForward * 7.5);
+		shieldArmTransform->setTranslation(shieldArmPosition - shieldArmForward * 7.5);
 		shieldArmTransform->setRotation(shieldArmRotation);
 	}
 }
