@@ -350,7 +350,7 @@ int main(int argc, char **argv)
 		commitChanges();
 
 		initSimulation();
-		user = new Player(userFaction, true);
+		user = new Player(userFaction, false);
 		enemy = new Player(enemyFaction, true);
 		user->setEnemy(enemy);
 		enemy->setEnemy(user);
