@@ -17,6 +17,7 @@ ComponentTransformTransitPtr cloneModelWithTranform(NodeRecPtr modelToClone) {
 }
 
 Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel) {
+	enemy = nullptr;
 	headRotation = Quaternion();
 	headPosition = Vec3f(0,170,30);
 	diskArmPosition = Vec3f(20,130,50);
@@ -56,15 +57,15 @@ Player::~Player() {
 void Player::update() {
 	recalculatePositions();
 
+	shield->setPosition(shieldArmPosition);
+	shield->setRotation(shieldArmRotation);
+	shield->update(disk->getPosition());
+
 	disk->setPosition(diskArmPosition);
 	disk->setRotation(diskArmRotation);
 	disk->setTargetOwnerPosition(headPosition);
 	disk->setTargetEnemyPosition(enemyPoint->getTranslation());
 	disk->update();
-
-	shield->setPosition(shieldArmPosition);
-	shield->setRotation(shieldArmRotation);
-	shield->update();
 };
 
 void Player::recalculatePositions() {
@@ -83,6 +84,14 @@ void Player::recalculatePositions() {
 		shieldArmTransform->setTranslation(shieldArmPosition);
 		shieldArmTransform->setRotation(shieldArmRotation);
 	}
+}
+
+Player* Player::getEnemy() {
+	return enemy;
+}
+
+void Player::setEnemy(Player* newEnemy) {
+	enemy = newEnemy;
 }
 
 Vec3f Player::getTorsoPosition() {

@@ -19,6 +19,8 @@ const Real32 PLAYER_GEOMETRY_SCALE = 2;
 
 class Player {
 public:
+	Player* getEnemy();
+	void setEnemy(Player* newEnemy);
 	Vec3f getTorsoPosition();
 	Quaternion getHeadRotation();
 	void setHeadRotation(Quaternion rotation);
@@ -40,6 +42,7 @@ public:
 private:
 	void recalculatePositions();
 	bool modelIncluded;
+	Player* enemy;
 	Disk* disk;
 	Shield* shield;
 	ComponentTransformRecPtr torsoTransform;

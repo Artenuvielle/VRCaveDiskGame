@@ -346,6 +346,8 @@ int main(int argc, char **argv)
 		initSimulation();
 		user = new Player(userFaction, false);
 		enemy = new Player(enemyFaction, true);
+		user->setEnemy(enemy);
+		enemy->setEnemy(user);
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );

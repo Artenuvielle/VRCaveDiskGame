@@ -30,9 +30,14 @@ const Real32 WALL_Z_MIN = -945;
 
 const Real32 diskRadius = 15; // cm
 const Real32 diskHeight = 3; // cm
-const Real32 diskSpeed = 0.4; // in cm/ms
+const Real32 diskSpeed = 0.4; // cm/ms
 const Real32 diskAxisRotationFactor = 100;
 const Real32 diskRotationTimeAfterCollision = 0.3; // s
+
+const Real32 shieldMinimumRadius = 2.5; // cm
+const Real32 shieldMaximumRadius = 20; // cm
+const Real32 shieldGrowStartDistance = 400; // cm
+const Real32 shieldGrowEndDistance = 250; // cm
 
 const Real32 diskEnemyMomentumAttractionFactor = 1.2f; // deg/sec
 const Real32 diskOwnerMomentumAttractionFactor = 1.5f; // deg/sec

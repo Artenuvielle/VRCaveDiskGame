@@ -18,8 +18,8 @@ Shield::Shield(PlayerFaction faction) {
 		ringMat = shieldRingMaterialOrange;
 	}
 
-	GeometryRecPtr torusGeo = makeTorusGeo(0.5, 20, 10, 20);
-	GeometryRecPtr ringGeo = makeCylinderGeo(0.1, 20, 20, false, true, true);
+	GeometryRecPtr torusGeo = makeTorusGeo(0.5, shieldMaximumRadius, 10, 20);
+	GeometryRecPtr ringGeo = makeCylinderGeo(0.1, shieldMaximumRadius, 20, false, true, true);
 
 	torusGeo->setMaterial(torusMat);
 	ringGeo->setMaterial(ringMat);
@@ -37,12 +37,25 @@ Shield::Shield(PlayerFaction faction) {
 	groupNode->addChild(torusTransformNode);
 	transformNode->addChild(groupNode);
 	root->addChild(transformNode);
+
+	setRadius(shieldMaximumRadius);
 	
 	commitChanges();
 }
 
-void Shield::update() {
-
+void Shield::update(Vec3f enemyDiskPosition) {
+	Real32 distance = (enemyDiskPosition - getPosition()).length();
+	if (distance < shieldGrowStartDistance) {
+		if (distance < shieldGrowEndDistance) {
+			setRadius(shieldMaximumRadius);
+		} else {
+			Real32 distanceScale = (1 + osgCos((distance - shieldGrowEndDistance) / (shieldGrowStartDistance - shieldGrowEndDistance) * Pi)) / 2;
+			setRadius(shieldMinimumRadius + (shieldMaximumRadius - shieldMinimumRadius) * distanceScale);
+		}
+	} else {
+		setRadius(shieldMinimumRadius);
+	}
+	std::cout << distance << '\n';
 }
 
 void Shield::setPosition(Vec3f newPosition) {
@@ -61,10 +74,12 @@ Quaternion Shield::getRotation() {
 	return transform->getRotation();
 }
 
-void Shield::setScale(Real32 newScale) {
-	transform->setScale(newScale);
+void Shield::setRadius(Real32 newRadius) {
+	Real32 clampedRadius = osgMax(shieldMinimumRadius, osgMin(shieldMaximumRadius, newRadius));
+	Real32 newScale = clampedRadius / shieldMaximumRadius;
+	transform->setScale(Vec3f(newScale, 1, newScale));
 }
 
-Real32 Shield::getScale() {
-	return transform->getScale().x();
+Real32 Shield::getRadius() {
+	return transform->getScale().x() * shieldMaximumRadius;
 }

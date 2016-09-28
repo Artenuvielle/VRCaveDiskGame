@@ -17,10 +17,10 @@ public:
 	Vec3f getPosition();
 	void setRotation(Quaternion newRotation);
 	Quaternion getRotation();
-	void setScale(Real32 newScale);
-	Real32 getScale();
+	void setRadius(Real32 newRadius);
+	Real32 getRadius();
 	
-	void update();
+	void update(Vec3f enemyDiskPosition);
 	Shield(PlayerFaction type);
 private:
 	ComponentTransformRecPtr transform;
