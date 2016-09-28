@@ -78,6 +78,9 @@ void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tr
 {
 	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
 	wand_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
+
+	testTrans->setTranslation(wand_position);
+	testTrans->setRotation(wand_orientation);
 }
 
 void VRPN_CALLBACK callback_shield_tracker(void* userData, const vrpn_TRACKERCB tracker)
@@ -231,7 +234,7 @@ void setupGLUT(int *argc, char *argv[])
 
 		user->setHeadRotation(head_orientation);
 		user->setHeadPosition(head_position);
-		user->setDiskArmRotation(wand_orientation);
+		user->setDiskArmRotation(wand_orientation * Quaternion(Vec3f(0,1,0), osgDegree2Rad(180)));
 		user->setDiskArmPosition(wand_position);
 		user->setShieldArmRotation(shield_orientation);
 		user->setShieldArmPosition(shield_position);
@@ -348,7 +351,7 @@ int main(int argc, char **argv)
 		commitChanges();
 
 		initSimulation();
-		user = new Player(userFaction, false);
+		user = new Player(userFaction, true);
 		enemy = new Player(enemyFaction, true);
 		user->setEnemy(enemy);
 		enemy->setEnemy(user);

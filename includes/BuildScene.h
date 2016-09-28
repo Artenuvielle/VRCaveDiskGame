@@ -29,6 +29,8 @@ extern SimpleMaterialRecPtr shieldTorusMaterialOrange;
 extern SimpleMaterialRecPtr shieldRingMaterialBlue;
 extern SimpleMaterialRecPtr shieldRingMaterialOrange;
 
+extern ComponentTransformRecPtr testTrans;
+
 extern NodeTransitPtr buildScene();
 
 #endif

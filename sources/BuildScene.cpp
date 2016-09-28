@@ -30,6 +30,8 @@ SimpleMaterialRecPtr shieldTorusMaterialOrange;
 SimpleMaterialRecPtr shieldRingMaterialBlue;
 SimpleMaterialRecPtr shieldRingMaterialOrange;
 
+ComponentTransformRecPtr testTrans;
+
 
 NodeTransitPtr buildScene()
 {
@@ -129,13 +131,13 @@ NodeTransitPtr buildScene()
 	builder.fullVertex(Pnt3f(10, -10, 10), Vec3f(0, -1, 0), Color3f(0,1,1));
 	builder.fullVertex(Pnt3f(-10, -10, 10), Vec3f(0, -1, 0), Color3f(0,1,1));
 	*/builder.end();
-	NodeRecPtr testModel = makeNodeFor(builder.getGeometry());//makeCylinder(80,10,20,true,true,true);//makeBox(10,10,30,1,1,1);
-	ComponentTransformRecPtr testTrans = ComponentTransform::create();
+	NodeRecPtr testModel = makeCoordAxis(20,2.0f,true);//makeNodeFor(builder.getGeometry());//makeCylinder(80,10,20,true,true,true);//makeBox(10,10,30,1,1,1);
+	testTrans = ComponentTransform::create();
 	testTrans->setTranslation(Vec3f(0,135,15));
 	//testTrans->setRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)) * Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)));
 	NodeRecPtr testTransNode = makeNodeFor(testTrans);
 	testTransNode->addChild(testModel);
-	//root->addChild(testTransNode);
+	root->addChild(testTransNode);
 	
 	ShaderProgramRefPtr vpPPL = ShaderProgram::createVertexShader();
 	ShaderProgramRefPtr fpPPL = ShaderProgram::createFragmentShader();
@@ -170,9 +172,9 @@ NodeTransitPtr buildScene()
 	passMat->addMaterial(chunk2Mat);
 	
 
-	GeometryRecPtr testGeo = dynamic_cast<Geometry*>(testModel->getCore());
-	testGeo->setMaterial(passMat);
-	
+	//GeometryRecPtr testGeo = dynamic_cast<Geometry*>(testModel->getCore());
+	//testGeo->setMaterial(passMat);
+
 	// you will see a donut at the floor, slightly skewed, depending on head_position
 	return NodeTransitPtr(root);
 }

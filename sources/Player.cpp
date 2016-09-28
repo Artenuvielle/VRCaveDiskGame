@@ -29,17 +29,17 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 	if (drawModel) {
 		torsoTransform = cloneModelWithTranform(playerModelTorso);
 		if (faction == PLAYER_FACTION_BLUE) {
-			headTransform = cloneModelWithTranform(playerModelHeadBlue);
+			//headTransform = cloneModelWithTranform(playerModelHeadBlue);
 			diskArmTransform = cloneModelWithTranform(playerModelArmBlue);
 			shieldArmTransform = cloneModelWithTranform(playerModelArmBlue);
 		} else {
-			headTransform = cloneModelWithTranform(playerModelHeadOrange);
+			//headTransform = cloneModelWithTranform(playerModelHeadOrange);
 			diskArmTransform = cloneModelWithTranform(playerModelArmOrange);
 			shieldArmTransform = cloneModelWithTranform(playerModelArmOrange);
 		}
 
 		torsoTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE) * 1.3);
-		headTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
+		//headTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
 		diskArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
 		shieldArmTransform->setScale(Vec3f(PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE, PLAYER_GEOMETRY_SCALE));
 
@@ -77,8 +77,8 @@ void Player::recalculatePositions() {
 		Vec3f headEulerAxisRotation;
 		headRotation.getEulerAngleRad(headEulerAxisRotation);
 		torsoTransform->setRotation(Quaternion(Vec3f(0,1,0), headEulerAxisRotation.y()));
-		headTransform->setTranslation(headPosition);
-		headTransform->setRotation(headRotation);
+		//headTransform->setTranslation(headPosition);
+		//headTransform->setRotation(headRotation);
 		Vec3f diskArmDown, shieldArmDown;
 		Vec3f diskArmForward, shieldArmForward;
 		diskArmRotation.multVec(Vec3f(0,-1,0), diskArmDown);
