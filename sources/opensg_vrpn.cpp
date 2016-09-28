@@ -83,7 +83,9 @@ void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tr
 void VRPN_CALLBACK callback_shield_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
 	shield_orientation = Quaternion(Vec3f(1,0,0), -osgDegree2Rad(30)) * Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]) * Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
-	shield_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
+	Vec3f shield_up;
+	shield_orientation.multVec(Vec3f(0,1,0), shield_up);
+	shield_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos))) - shield_up * 5;
 
 	testTrans->setTranslation(shield_position);
 	testTrans->setRotation(shield_orientation);
