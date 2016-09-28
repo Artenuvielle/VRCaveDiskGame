@@ -76,13 +76,13 @@ auto shield_orientation = Quaternion();
 auto shield_position = Vec3f(0,135,0);
 void VRPN_CALLBACK callback_wand_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
-	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
+	wand_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]) * Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
 	wand_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
 }
 
 void VRPN_CALLBACK callback_shield_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
-	shield_orientation = Quaternion(Vec3f(1,0,0), -osgDegree2Rad(30)) * Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
+	shield_orientation = Quaternion(Vec3f(1,0,0), -osgDegree2Rad(30)) * Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]) * Quaternion(Vec3f(0,1,0), osgDegree2Rad(180));
 	shield_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
 
 	testTrans->setTranslation(shield_position);
@@ -234,7 +234,7 @@ void setupGLUT(int *argc, char *argv[])
 
 		user->setHeadRotation(head_orientation);
 		user->setHeadPosition(head_position);
-		user->setDiskArmRotation(wand_orientation * Quaternion(Vec3f(0,1,0), osgDegree2Rad(180)));
+		user->setDiskArmRotation(wand_orientation);
 		user->setDiskArmPosition(wand_position);
 		user->setShieldArmRotation(shield_orientation);
 		user->setShieldArmPosition(shield_position);
