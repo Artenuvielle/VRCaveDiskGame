@@ -1,6 +1,8 @@
 #include "ArtificialIntelligence.h"
 
 #include "AIStates/AIIdleState.h"
+#include "AIStates/AIAttackState.h"
+#include "AIStates/AIDefendState.h"
 
 OSG_USING_NAMESPACE
 
@@ -28,12 +30,19 @@ void AI::update() {
 		delete stateHandler;
 		switch (newState)
 		{
+		case AI_STATE_ATTACK:
+			stateHandler = new AIAttackState();
+			break;
+		case AI_STATE_DEFEND:
+			stateHandler = new AIDefendState();
+			break;
 		case AI_STATE_IDLE:
 		default:
 			stateHandler = new AIIdleState();
 			break;
 		}
 		state = newState;
+		std::cout << "AI changed state to " << state << '\n';
 	}
 }
 

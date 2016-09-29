@@ -1,10 +1,10 @@
-#include "AIStates/AIIdleState.h"
+#include "AIStates/AIAttackState.h"
 
 #include "Common.h"
 
 OSG_USING_NAMESPACE
 
-AIState AIIdleState::update(Player* me) {
+AIState AIAttackState::update(Player* me) {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	headPosition = aiDefaultHeadPosition + Vec3f(osgCos(time / 1000.f), osgSin(time / 1000.f) * osgCos(time / 1000.f)) * 10;
 	headRotation = Quaternion();

@@ -12,8 +12,13 @@
 OSG_USING_NAMESPACE
 
 enum AIState {
-	AI_STATE_IDLE = 0
+	AI_STATE_IDLE = 0,
+	AI_STATE_ATTACK,
+	AI_STATE_DEFEND,
+	SIZE_OF_AI_STATE_ENUM
 };
+static const char* AIStateNames[] = { "idle", "attacking", "defending" };
+static_assert(sizeof(AIStateNames)/sizeof(char*) == SIZE_OF_AI_STATE_ENUM, "sizes dont match");
 
 class AIStateHandler {
 public:
