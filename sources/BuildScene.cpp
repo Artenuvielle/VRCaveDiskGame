@@ -193,14 +193,6 @@ NodeTransitPtr buildScene()
 
 
 
-
-
-	enemyPoint = ComponentTransform::create();
-	enemyPoint->setTranslation(Vec3f(0,167,-900));
-	NodeRecPtr enemyTrans = makeNodeFor(enemyPoint);
-	enemyTrans->addChild(makeSphere(1,10));
-	root->addChild(enemyTrans);
-
 	GeoBuilder builder;
 	builder.begin(GL_QUAD_STRIP);
 	Real32 r = 10;

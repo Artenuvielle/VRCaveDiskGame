@@ -66,8 +66,8 @@ void Player::update() {
 
 	disk->setPosition(diskArmPosition + diskArmUp * 6.5);
 	disk->setRotation(diskArmRotation);
-	disk->setTargetOwnerPosition(headPosition);
-	disk->setTargetEnemyPosition(enemyPoint->getTranslation());
+	disk->setTargetOwnerPosition(getTorsoPosition());
+	disk->setTargetEnemyPosition(enemy->getTorsoPosition());
 	disk->update();
 };
 

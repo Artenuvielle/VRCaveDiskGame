@@ -54,6 +54,5 @@ const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
 extern NodeRecPtr root;
 extern NodeRecPtr boundingBoxModel;
 extern ComponentTransformRecPtr boundingBoxModelCT;
-extern ComponentTransformRecPtr enemyPoint;
 
 #endif
