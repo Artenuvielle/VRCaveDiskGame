@@ -134,6 +134,10 @@ void Disk::update() {
 		Real32 diskMomentumAttractionFactor;
 		Vec3f forward;
 		if (state == DISK_STATE_FREE_FLY) {
+			if ((transform->getTranslation().z() < targetEnemyPosition.z() && diskType == userFaction) ||
+				(transform->getTranslation().z() > targetEnemyPosition.z() && diskType == enemyFaction)) {
+				vectorToTarget = momentum;
+			}
 			vectorToTarget = targetEnemyPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
 			forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
