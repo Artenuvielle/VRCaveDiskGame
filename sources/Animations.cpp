@@ -38,7 +38,7 @@ AnimationData createWallCollisionAnimation(Vec3f position, Real32 xsixe, Real32 
 
 	allAnimations.push_front(newAnimation);
 
-	std::cout << "Created animation " << animationIdCounter << '\n';	
+	//std::cout << "Created animation " << animationIdCounter << '\n';	
 	animationIdCounter++;
 	changedSceneGraph = true;
 	return newAnimation;
