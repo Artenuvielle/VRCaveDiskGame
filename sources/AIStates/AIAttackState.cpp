@@ -36,13 +36,16 @@ AIAttackState::AIAttackState(Player* me) : AIStateHandler(me) {
 	startPosition = diskArmPosition;
 	startDirection = Vec3f(0, 0, 0);
 	Vec3f randomDrawStartDirection(osgRand() - 0.5f, (osgRand() - 0.5f) * 0.7f, (osgRand() - 0.8f));
+	std::cout << "startdir     " << randomDrawStartDirection << "\n";
 	randomDrawStartDirection.normalize();
-	startDrawingPosition = getPositionForAIInBounds(me->getTorsoPosition() + Vec3f(-25,0,0) + randomDrawStartDirection * osgPow(osgRand() * 40, 2));
+	std::cout << "startdirnorm " << randomDrawStartDirection << "\n";
+	startDrawingPosition = me->getTorsoPosition() + Vec3f(-25,0,0) + randomDrawStartDirection * osgPow(osgRand(), 2) * 40;
+	//startDrawingPosition = getPositionForAIInBounds();
 	startDrawingDirection = Vec3f(0.f, 0.f, -1.f);
-	Vec3f randomDrawEndDirection((osgRand() - 0.5f) * 0.1, (osgRand() - 0.5f) * 0.1f, (osgRand() - 1.f));
+	Vec3f randomDrawEndDirection((osgRand() - 0.5f), (osgRand() - 0.5f), (osgRand() - 1.f));
 	randomDrawStartDirection.normalize();
-	startDrawingPosition = getPositionForAIInBounds(startDrawingPosition + randomDrawEndDirection * osgPow(osgRand() * 70, 2));
-	endDrawingPosition = startDrawingPosition + Vec3f(10,-60,40);
+	endDrawingPosition = startDrawingPosition + randomDrawEndDirection * osgPow(osgRand(), 2) * 70;
+	//endDrawingPosition = getPositionForAIInBounds();
 	endDrawingDirection = endDrawingPosition - startDrawingPosition;
 	endDrawingPosition.normalize();
 	distanceToDrawStart = splineLengthApproximation(4, startPosition, startDrawingPosition, startDirection, startDrawingDirection);
@@ -73,7 +76,7 @@ AIState AIAttackState::update() {
 			diskArmPosition = splineInterpolation(splinePercent, startPosition, startDrawingPosition, startDirection, startDrawingDirection);
 		}
 	}
-	diskArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(90));
+	diskArmRotation = Quaternion(Vec3f(1,0,0), diskArmPosition - (me->getTorsoPosition() + Vec3f(-25,0,0)));
 	
 	headPosition = aiDefaultHeadPosition + Vec3f(osgCos(time / 1000.f), osgSin(time / 1000.f) * osgCos(time / 1000.f)) * 10;
 	headRotation = Quaternion();
