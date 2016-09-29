@@ -49,6 +49,8 @@ const Real32 diskMinimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
 
 const Real32 collisionAnimationSize = 150; // in cm
 
+const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
+
 extern NodeRecPtr root;
 extern NodeRecPtr boundingBoxModel;
 extern ComponentTransformRecPtr boundingBoxModelCT;

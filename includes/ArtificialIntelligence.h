@@ -15,20 +15,33 @@ enum AIState {
 	AI_STATE_IDLE = 0
 };
 
+class AIStateHandler {
+public:
+	Vec3f getHeadPosition();
+	Vec3f getDiskArmPosition();
+	Vec3f getShieldArmPosition();
+	Quaternion getHeadRotation();
+	Quaternion getDiskArmRotation();
+	Quaternion getShieldArmRotation();
+	virtual AIState update(Player* me) = 0;
+protected:
+	Vec3f headPosition;
+	Vec3f diskArmPosition;
+	Vec3f shieldArmPosition;
+	Quaternion headRotation;
+	Quaternion diskArmRotation;
+	Quaternion shieldArmRotation;
+};
+
 class AI {
 public:
 	void update();
 	AI(Player* aiTarget);
+	~AI();
 private:
 	Player* me;
 	AIState state;
-	Vec3f targetHeadPosition;
-	Vec3f targetDiskArmPosition;
-	Vec3f targetShieldArmPosition;
-	Quaternion targetHeadRotation;
-	Quaternion targetDiskArmRotation;
-	Quaternion targetShieldArmRotation;
-	void updateActualPositions();
+	AIStateHandler* stateHandler;
 };
 
 #endif
