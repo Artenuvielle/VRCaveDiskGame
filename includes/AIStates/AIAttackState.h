@@ -17,6 +17,7 @@ public:
 	AIAttackState(Player* me);
 private:
 	Vec3f startPosition, startDirection, startDrawingPosition, startDrawingDirection, endDrawingPosition, endDrawingDirection;
+	Real32 distanceToDrawStart, distanceToDrawEnd;
 	Real32 startTime;
 	bool isDrawing;
 };

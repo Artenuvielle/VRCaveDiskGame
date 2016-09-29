@@ -20,6 +20,8 @@ enum AIState {
 static const char* AIStateNames[] = { "idle", "attacking", "defending" };
 static_assert(sizeof(AIStateNames)/sizeof(char*) == SIZE_OF_AI_STATE_ENUM, "sizes dont match");
 
+extern Vec3f getPositionForAIInBounds(Vec3f input);
+
 class AIStateHandler {
 public:
 	Vec3f getHeadPosition();

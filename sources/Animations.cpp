@@ -50,7 +50,7 @@ void updateAnimations() {
 		if (time > iterator->startTime + iterator->duration) {
 			root->subChild(iterator->animationTransformNode);
 			changedSceneGraph = true;
-			std::cout << "Animation " << iterator->id << " ended" << '\n';
+			//std::cout << "Animation " << iterator->id << " ended" << '\n';
 			iterator = allAnimations.erase(iterator);
 			if (iterator != allAnimations.begin()) iterator--;
 		} else {

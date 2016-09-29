@@ -149,6 +149,9 @@ void print_tracker()
 }
 
 Real32 simStartTime = 0;
+bool showFPS = false;
+int fpsCount = 0;
+Real32 lastFPSUpdate;
 
 void keyboard(unsigned char k, int x, int y)
 {
@@ -178,10 +181,7 @@ void keyboard(unsigned char k, int x, int y)
 			print_tracker();
 			break;
 		case 'w':
-			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,1,0));
-			//xangle--;
-			//std::cout << xangle << '\n';
-			//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+			showFPS = !showFPS;
 			break;
 		case 's':
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,1,0));
@@ -230,6 +230,14 @@ void setupGLUT(int *argc, char *argv[])
 	{
 		// get the time since the application started
 		int time = glutGet(GLUT_ELAPSED_TIME);
+		if (showFPS) {
+			if (time - lastFPSUpdate > 1000) {
+				std::cout << "FPS: " << fpsCount << '\n';
+				fpsCount = 0;
+				lastFPSUpdate = time;
+			}
+			fpsCount++;
+		}
 
 		user->setHeadRotation(head_orientation);
 		user->setHeadPosition(head_position);

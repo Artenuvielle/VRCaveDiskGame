@@ -6,6 +6,12 @@
 
 OSG_USING_NAMESPACE
 
+Vec3f getPositionForAIInBounds(Vec3f input) {
+	return Vec3f(osgMax(WALL_X_MIN + 30,  osgMin(WALL_X_MAX - 30, input.x())),
+	             osgMax(WALL_Y_MIN + 30,  osgMin(WALL_Y_MAX - 30, input.y())),
+	             osgMax(WALL_Z_MIN + 30,  osgMin(WALL_Z_MIN + 270 - 30, input.z())));
+}
+
 AI::AI(Player* aiTarget) {
 	me = aiTarget;
 	state = AI_STATE_IDLE;
