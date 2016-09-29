@@ -131,7 +131,8 @@ NodeTransitPtr buildScene()
 	
 	/*ComponentTransformRecPtr */boundingBoxModelCT = ComponentTransform::create();
 	boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
-	boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+	boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(-90)));
+	//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
 	//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
 	boundingBoxModelCT->setScale(Vec3f(270.f,270.f,270.f));
 
