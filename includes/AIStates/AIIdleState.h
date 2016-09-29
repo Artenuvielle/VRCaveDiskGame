@@ -13,7 +13,8 @@ OSG_USING_NAMESPACE
 
 class AIIdleState : public AIStateHandler {
 public:
-	AIState update(Player* me);
+	AIState update();
+	AIIdleState(Player* me);
 };
 
 #endif

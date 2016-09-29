@@ -13,7 +13,12 @@ OSG_USING_NAMESPACE
 
 class AIAttackState : public AIStateHandler {
 public:
-	AIState update(Player* me);
+	AIState update();
+	AIAttackState(Player* me);
+private:
+	Vec3f startPosition, startDirection, startDrawingPosition, startDrawingDirection, endDrawingPosition, endDrawingDirection;
+	Real32 startTime;
+	bool isDrawing;
 };
 
 #endif

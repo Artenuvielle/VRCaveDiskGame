@@ -3,8 +3,12 @@
 #include "Common.h"
 
 OSG_USING_NAMESPACE
+	
+AIDefendState::AIDefendState(Player* me) : AIStateHandler(me) {
 
-AIState AIDefendState::update(Player* me) {
+}
+
+AIState AIDefendState::update() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	headPosition = aiDefaultHeadPosition + Vec3f(osgCos(time / 1000.f), osgSin(time / 1000.f) * osgCos(time / 1000.f)) * 10;
 	headRotation = Quaternion();

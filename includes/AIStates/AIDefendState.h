@@ -13,7 +13,8 @@ OSG_USING_NAMESPACE
 
 class AIDefendState : public AIStateHandler {
 public:
-	AIState update(Player* me);
+	AIState update();
+	AIDefendState(Player* me);
 };
 
 #endif

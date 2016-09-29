@@ -9,7 +9,7 @@ OSG_USING_NAMESPACE
 AI::AI(Player* aiTarget) {
 	me = aiTarget;
 	state = AI_STATE_IDLE;
-	stateHandler = new AIIdleState();
+	stateHandler = new AIIdleState(me);
 	me->setHeadPosition(aiDefaultHeadPosition);
 	me->setHeadRotation(Quaternion());
 	me->setDiskArmPosition(aiDefaultHeadPosition + Vec3f(-25,-60,0));
@@ -19,7 +19,7 @@ AI::AI(Player* aiTarget) {
 }
 
 void AI::update() {
-	AIState newState = stateHandler->update(me);
+	AIState newState = stateHandler->update();
 	me->setHeadPosition(stateHandler->getHeadPosition());
 	me->setHeadRotation(stateHandler->getHeadRotation());
 	me->setDiskArmPosition(stateHandler->getDiskArmPosition());
@@ -31,23 +31,32 @@ void AI::update() {
 		switch (newState)
 		{
 		case AI_STATE_ATTACK:
-			stateHandler = new AIAttackState();
+			stateHandler = new AIAttackState(me);
 			break;
 		case AI_STATE_DEFEND:
-			stateHandler = new AIDefendState();
+			stateHandler = new AIDefendState(me);
 			break;
 		case AI_STATE_IDLE:
 		default:
-			stateHandler = new AIIdleState();
+			stateHandler = new AIIdleState(me);
 			break;
 		}
 		state = newState;
-		std::cout << "AI changed state to " << state << '\n';
+		std::cout << "AI changed state to " << AIStateNames[state] << '\n';
 	}
 }
 
 AI::~AI() {
 	delete stateHandler;
+}
+
+AIStateHandler::AIStateHandler(Player* me) : me(me) {
+	headPosition = me->getHeadPosition();
+	headRotation = me->getHeadRotation();
+	diskArmPosition = me->getDiskArmPosition();
+	diskArmRotation = me->getDiskArmRotation();
+	shieldArmPosition = me->getShieldArmPosition();
+	shieldArmRotation = me->getShieldArmRotation();
 }
 
 Vec3f AIStateHandler::getHeadPosition() {

@@ -28,8 +28,10 @@ public:
 	Quaternion getHeadRotation();
 	Quaternion getDiskArmRotation();
 	Quaternion getShieldArmRotation();
-	virtual AIState update(Player* me) = 0;
+	virtual AIState update() = 0;
+	AIStateHandler(Player* me);
 protected:
+	Player* me;
 	Vec3f headPosition;
 	Vec3f diskArmPosition;
 	Vec3f shieldArmPosition;
