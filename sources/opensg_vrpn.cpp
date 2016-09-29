@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <ios>
 
 #include <OpenSG/OSGGLUT.h>
@@ -28,8 +29,11 @@
 #include "Disk.h"
 #include "Player.h"
 #include "Animations.h"
-#include "Simulation.h"
 #include "ArtificialIntelligence.h"
+
+#ifdef _simulate_
+#include "Simulation.h"
+#endif
 
 OSG_USING_NAMESPACE
 
@@ -41,9 +45,15 @@ vrpn_Analog_Remote* analog = nullptr;
 
 Player *user, *enemy;
 AI *ai;
+#ifdef _logFrames_
+std::ofstream logFile;
+#endif
 
 void cleanup()
 {
+#ifdef _logFrames_
+	logFile.close();
+#endif
 	delete ai;
 	delete user, enemy;
 	delete mgr;
@@ -95,14 +105,30 @@ void VRPN_CALLBACK callback_analog(void* userData, const vrpn_ANALOGCB analog)
 		analog_values = Vec3f(analog.channel[0], 0, -analog.channel[1]);
 }
 
+#ifdef _logFrames_
+bool isButtonPushed = false;
+#endif
+
 void VRPN_CALLBACK callback_button(void* userData, const vrpn_BUTTONCB button)
 {
 	if (button.button == 0) {
 		if (button.state == 1) {
+#ifdef _logFrames_
+			if (!isButtonPushed) {
+				logFile << "		inputSteps.push(InputStep(" << glutGet(GLUT_ELAPSED_TIME) << ", true));";
+				isButtonPushed = true;
+			}
+#endif
 			if(user->getDisk()->getState() == DISK_STATE_READY) {
 				user->getDisk()->startDraw(wand_position);
 			}
 		} else {
+#ifdef _logFrames_
+			if (isButtonPushed) {
+				logFile << "		inputSteps.push(InputStep(" << glutGet(GLUT_ELAPSED_TIME) << ", false));";
+				isButtonPushed = false;
+			}
+#endif
 			if(user->getDisk()->getState() == DISK_STATE_DRAWN) {
 				user->getDisk()->endDraw(wand_position);
 			}
@@ -195,10 +221,12 @@ void keyboard(unsigned char k, int x, int y)
 		case 'd':
 			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
 			break;
+#ifdef _simulate_
 		case 'x':
 			initSimulation();
 			simStartTime = glutGet(GLUT_ELAPSED_TIME);
 			break;
+#endif
 		case ' ':
 			user->getDisk()->startDraw(Vec3f(-1,135,1));
 			user->getDisk()->setPosition(Vec3f(0,135,0));
@@ -260,7 +288,13 @@ void setupGLUT(int *argc, char *argv[])
 		
 		check_tracker();
 
-		/**/
+#ifdef _logFrames_
+		logFile << "		simSteps.push(SimStep(" << time << ", Vec3f(" << head_position << "), Quaternion(" << head_orientation.x() << ", " << head_orientation.y() << ", " << head_orientation.z() << ", " << head_orientation.w();
+		logFile << "), Vec3f(" << wand_position << "), Quaternion(" << wand_orientation.x() << ", " << wand_orientation.y() << ", " << wand_orientation.z() << ", " << wand_orientation.w();
+		logFile << ", Vec3f(" << shield_position << "), Quaternion(" << shield_orientation.x() << ", " << shield_orientation.y() << ", " << shield_orientation.z() << ", " << shield_orientation.w() << ")));\n";
+#endif
+
+#ifdef _simulate_
 		if (simStartTime > 0) {
 			SimStep t = getSimulationStep(time - simStartTime + 14500);
 			wand_position = t.wand_position;
@@ -278,8 +312,7 @@ void setupGLUT(int *argc, char *argv[])
 				}
 			}
 		}
-		/*
-		*/
+#endif
 		
 		const auto speed = 1.f;
 		mgr->setUserTransform(head_position, head_orientation);
@@ -356,8 +389,13 @@ int main(int argc, char **argv)
 		if (!scene) 
 			scene = buildScene();
 		commitChanges();
-
+		
+#ifdef _logFrames_
+		logFile.open ("example.txt");
+#endif
+#ifdef _simulate_
 		initSimulation();
+#endif
 		user = new Player(userFaction, false);
 		enemy = new Player(enemyFaction, true);
 		user->setEnemy(enemy);
