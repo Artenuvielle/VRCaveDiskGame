@@ -15,8 +15,8 @@ OSG_USING_NAMESPACE
 extern NodeRecPtr diskModelBlue;
 extern NodeRecPtr diskModelOrange;
 
-extern std::vector<ImageRecPtr> collisionImagesBlue;
-extern std::vector<ImageRecPtr> collisionImagesOrange;
+extern ImageRecPtr collisionImageBlue;
+extern ImageRecPtr collisionImageOrange;
 
 extern NodeRecPtr playerModelTorso;
 extern NodeRecPtr playerModelHeadBlue;

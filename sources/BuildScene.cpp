@@ -22,8 +22,8 @@ OSG_USING_NAMESPACE
 NodeRecPtr diskModelBlue;
 NodeRecPtr diskModelOrange;
 
-std::vector<ImageRecPtr> collisionImagesBlue;
-std::vector<ImageRecPtr> collisionImagesOrange;
+ImageRecPtr collisionImageBlue;
+ImageRecPtr collisionImageOrange;
 
 NodeRecPtr playerModelTorso;
 NodeRecPtr playerModelHeadBlue;
@@ -149,6 +149,8 @@ NodeTransitPtr buildScene()
 	playerModelArmBlue = loadModelFromCache("models/robot_arm_blue", ".OBJ");
 	playerModelArmOrange = loadModelFromCache("models/robot_arm_orange", ".OBJ");
 
+	std::vector<ImageRecPtr> collisionImagesBlue;
+	std::vector<ImageRecPtr> collisionImagesOrange;
 
 	for (int i = 0; i < 25; i++) {
 		ImageRecPtr image = Image::create();
@@ -165,6 +167,46 @@ NodeTransitPtr buildScene()
 		image->read(s.str().c_str());
 		collisionImagesOrange.push_back(image);
 	}
+
+	collisionImageBlue = Image::create();
+	ImageRecPtr firstImageBlue = collisionImagesBlue.at(0);
+	collisionImageBlue->set(
+		firstImageBlue->getPixelFormat(),
+		firstImageBlue->getWidth(),
+		firstImageBlue->getHeight(),
+		firstImageBlue->getDepth(),
+		firstImageBlue->getMipMapCount(),
+		collisionImagesBlue.size(),
+		0.04f
+		);
+	
+	collisionImageOrange = Image::create();
+	ImageRecPtr firstImageOrange = collisionImagesOrange.at(0);
+	collisionImageOrange->set(
+		firstImageOrange->getPixelFormat(),
+		firstImageOrange->getWidth(),
+		firstImageOrange->getHeight(),
+		firstImageOrange->getDepth(),
+		firstImageOrange->getMipMapCount(),
+		collisionImagesOrange.size(),
+		0.04f
+		);
+
+	//unsigned char
+	UInt8 *destData;
+	for(int i = 0; i < collisionImagesBlue.size(); i++) {
+		destData = collisionImageBlue->editData(0, i);
+		memcpy(destData, collisionImagesBlue.at(i)->getData(), collisionImagesBlue.at(i)->getFrameSize());
+	}
+	for(int i = 0; i < collisionImagesOrange.size(); i++) {
+		destData = collisionImageOrange->editData(0, i);
+		memcpy(destData, collisionImagesOrange.at(i)->getData(), collisionImagesOrange.at(i)->getFrameSize());
+	}
+
+	/*collisionImageBlue = Image::create();
+	collisionImageBlue->read("models/wall_collision_blue.gif");
+	collisionImageOrange = Image::create();
+	collisionImageOrange->read("models/wall_collision_orange.gif");*/
 
 	shieldTorusMaterialBlue = SimpleMaterial::create();
 	shieldTorusMaterialBlue->setDiffuse(colorBlue);

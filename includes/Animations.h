@@ -5,8 +5,9 @@
 #include <OpenSG/OSGGLUT.h>
 #include <OpenSG/OSGConfig.h>
 #include <OpenSG/OSGSimpleGeometry.h>
+#include "OpenSG/OSGSimpleTexturedMaterial.h"
+#include <OpenSG/OSGTextureObjChunk.h>
 #include <OpenSG/OSGImage.h>
-#include <OpenSG/OSGSimpleTexturedMaterial.h>
 
 #include <OSGCSM/OSGCAVESceneManager.h>
 
@@ -17,12 +18,11 @@ OSG_USING_NAMESPACE
 struct AnimationData {
 	int id;
 	Int32 startTime;
+	Int32 fps;
 	Real32 duration;
-	Real32 fps;
 	NodeRecPtr animationTransformNode;
-	SimpleTexturedMaterialRecPtr textureToAnimate;
-	//ImageRecPtr animationImage;
-	std::vector<ImageRecPtr>* imageSet;
+	TextureObjChunkRecPtr textureToAnimate;
+	ImageRecPtr imageSet;
 };
 
 extern AnimationData createWallCollisionAnimation(Vec3f position, Real32 xsixe, Real32 ysize, Vec3f normal, PlayerFaction faction);

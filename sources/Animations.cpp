@@ -1,5 +1,7 @@
 #include "Animations.h"
 
+#include "OpenSG/OSGTextureEnvChunk.h"
+
 #include <list>
 
 #include "BuildScene.h"
@@ -23,18 +25,34 @@ AnimationData createWallCollisionAnimation(Vec3f position, Real32 xsixe, Real32 
 	newAnimation.animationTransformNode = makeNodeFor(animationTransform);
 	newAnimation.animationTransformNode->addChild(animationPlane);
 	root->addChild(newAnimation.animationTransformNode);
-
-	newAnimation.textureToAnimate = SimpleTexturedMaterial::create();
-	newAnimation.imageSet = &(faction == PLAYER_FACTION_BLUE ? collisionImagesBlue : collisionImagesOrange);
+	
+	SimpleMaterialRecPtr chunkMaterial = SimpleMaterial::create();
+	//std::cout << chunkMaterial->getChunk(0) << "\n";
+	BlendChunkRecPtr blendChunk = BlendChunk::create();
+	chunkMaterial->addChunk(blendChunk);
+	blendChunk->setSrcFactor(GL_SRC_ALPHA);
+	blendChunk->setDestFactor(GL_ONE_MINUS_SRC_ALPHA);
+	blendChunk->setAlphaFunc(GL_NONE);
+	blendChunk->setAlphaValue(0);   
+	
+	newAnimation.textureToAnimate = TextureObjChunk::create();
+	newAnimation.imageSet = (faction == PLAYER_FACTION_BLUE ? collisionImageBlue : collisionImageOrange);
 	newAnimation.fps = 25;
 	newAnimation.duration = 1000;
-	//newAnimation.animationImage = Image::create();
-	//newAnimation.animationImage->setData(newAnimation.imageSet->at(10)->getData());
-	//newAnimation.textureToAnimate->setImage(newAnimation.animationImage);
-	newAnimation.textureToAnimate->setImage(newAnimation.imageSet->at(0));
+	newAnimation.textureToAnimate->setImage(newAnimation.imageSet);
+
+	chunkMaterial->addChunk(newAnimation.textureToAnimate);
+
+	TexGenChunkRecPtr texGenChunk = TexGenChunk::create();
+	chunkMaterial->addChunk(texGenChunk);
+
+	TextureEnvChunkRecPtr envChunk = TextureEnvChunk::create();
+	//envChunk->setEnvMode( GL_DECAL );
+	chunkMaterial->addChunk(envChunk);
 
 	GeometryRecPtr planeGeo = dynamic_cast<Geometry*>(animationPlane->getCore());
-	planeGeo->setMaterial(newAnimation.textureToAnimate);
+	planeGeo->setMaterial(chunkMaterial);
+	//planeGeo->setMaterial(newAnimation.textureToAnimate);
 
 	allAnimations.push_front(newAnimation);
 
@@ -55,10 +73,13 @@ void updateAnimations() {
 			if (iterator != allAnimations.begin()) iterator--;
 		} else {
 			Int32 timePerFrame = osgAbs(1000 / iterator->fps);
-			Int32 timeInAnimation = (time - iterator->startTime) % (iterator->imageSet->size() * timePerFrame);
-			//iterator->animationImage->setData(iterator->imageSet->at(osgAbs(timeInAnimation / timePerFrame))->getData());
-			//iterator->textureToAnimate->imageChanged();
-			iterator->textureToAnimate->setImage(iterator->imageSet->at(osgAbs(timeInAnimation / timePerFrame)));
+			//Int32 timePerFrame = osgAbs(iterator->imageSet->getFrameDelay() * 1000);
+			//Int32 timeInAnimation = (time - iterator->startTime) % (iterator->imageSet->size() * timePerFrame);
+			Int32 timeInAnimation = (time - iterator->startTime) % (iterator->imageSet->getFrameCount() * timePerFrame);
+
+			//iterator->imageSet->setData(iterator->images->at(osgAbs(timeInAnimation / timePerFrame))->getData());
+			//std::cout << iterator->textureToAnimate->getImage()->isAlphaBinary() << '\n';
+			iterator->textureToAnimate->setFrame(osgAbs(timeInAnimation / timePerFrame));
 		}
 	}
 
