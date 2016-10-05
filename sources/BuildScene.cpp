@@ -245,7 +245,7 @@ NodeTransitPtr buildScene()
 		builder.fullVertex(Pnt3f(r * osgSin(a), 10, r * -osgCos(a)), Vec3f(osgSin(a), 0, -osgCos(a)), Color3f(1,1,1));
 		builder.fullVertex(Pnt3f(r * osgSin(a), -10, r * -osgCos(a)), Vec3f(osgSin(a), 0, -osgCos(a)), Color3f(1,1,1));
 		//builder.fullVertex(Pnt3f(r * osgCos(a), 40, r * osgSin(a)), Vec3f(osgCos(a), 0, osgSin(a)), Color3f(1,0,0));
-		std::cout << Pnt3f(r * osgCos(a), 40, r * osgSin(a)) << "   " << Vec3f(osgCos(a), 0, osgSin(a)) << '\n';
+		//std::cout << Pnt3f(r * osgCos(a), 40, r * osgSin(a)) << "   " << Vec3f(osgCos(a), 0, osgSin(a)) << '\n';
 		b = a;
 	}
 	/*builder.fullVertex(Pnt3f(10, 10, 10), Vec3f(0, 1, 0), Color3f(0,0,1));

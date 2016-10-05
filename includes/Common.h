@@ -2,8 +2,8 @@
 #ifndef _Common_H_
 #define _Common_H_
 
-#define _logFrames_
-//#define _simulate_
+//#define _logFrames_
+#define _simulate_
 
 #include <OpenSG/OSGGLUT.h>
 #include <OpenSG/OSGConfig.h>
@@ -37,9 +37,9 @@ const Real32 PLAYER_GEOMETRY_SCALE = 2;
 
 const Real32 diskRadius = 15; // cm
 const Real32 diskHeight = 3; // cm
-const Real32 diskSpeed = 0.4; // cm/ms
+const Real32 diskSpeed = 0.4f; // cm/ms
 const Real32 diskAxisRotationFactor = 100;
-const Real32 diskRotationTimeAfterCollision = 0.3; // s
+const Real32 diskRotationTimeAfterCollision = 0.3f; // s
 
 const Real32 shieldMinimumRadius = 2.5; // cm
 const Real32 shieldMaximumRadius = 20; // cm
@@ -53,6 +53,11 @@ const Real32 diskMinimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
 const Real32 collisionAnimationSize = 150; // in cm
 
 const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
+const Real32 aiHeadMaxSpeed = 14.f; // cm/s
+const Real32 aiHeadMaxRotation = 1.f; // rad/s
+const Real32 aiArmMaxSpeed = 20.f; // cm/s
+const Real32 aiArmMaxRotation = 3.f; // rad/s
+const Real32 aiMinTimeUntilAttack = 2.f; // s
 
 extern NodeRecPtr root;
 extern NodeRecPtr boundingBoxModel;

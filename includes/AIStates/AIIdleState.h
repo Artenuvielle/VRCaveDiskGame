@@ -15,6 +15,8 @@ class AIIdleState : public AIStateHandler {
 public:
 	AIState update();
 	AIIdleState(Player* me);
+private:
+	Real32 minTimeForAttack;
 };
 
 #endif

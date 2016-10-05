@@ -24,14 +24,32 @@ AI::AI(Player* aiTarget) {
 	me->setShieldArmRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90)));
 }
 
+Vec3f capMovement(Vec3f start, Vec3f end, Real32 maximalMovement) {
+	Real32 distance = (end - start).length();
+	if (distance >= maximalMovement) {
+		return start + (end - start) * maximalMovement / distance;
+	}
+	return end;
+}
+
+Quaternion capRotation(Quaternion start, Quaternion end, Real32 maximalRotation) {
+	Real32 distance = (end - start).length();
+	if (distance >= maximalRotation) {
+		return start + (end - start) * maximalRotation / distance;
+	}
+	return end;
+}
+
 void AI::update() {
 	AIState newState = stateHandler->update();
-	me->setHeadPosition(stateHandler->getHeadPosition());
-	me->setHeadRotation(stateHandler->getHeadRotation());
-	me->setDiskArmPosition(stateHandler->getDiskArmPosition());
-	me->setDiskArmRotation(stateHandler->getDiskArmRotation());
-	me->setShieldArmPosition(stateHandler->getShieldArmPosition());
-	me->setShieldArmRotation(stateHandler->getShieldArmRotation());
+	Real32 time = glutGet(GLUT_ELAPSED_TIME);
+	Real32 elapsedSeconds = (time - lastUpdateTime) / 1000.f;
+	me->setHeadPosition(capMovement(me->getHeadPosition(), stateHandler->getHeadPosition(), aiHeadMaxSpeed * elapsedSeconds));
+	me->setHeadRotation(capRotation(me->getHeadRotation(), stateHandler->getHeadRotation(), aiHeadMaxRotation * elapsedSeconds));
+	me->setDiskArmPosition(capMovement(me->getDiskArmPosition(), stateHandler->getDiskArmPosition(), aiArmMaxSpeed * elapsedSeconds));
+	me->setDiskArmRotation(capRotation(me->getDiskArmRotation(), stateHandler->getDiskArmRotation(), aiArmMaxRotation * elapsedSeconds));
+	me->setShieldArmPosition(capMovement(me->getShieldArmPosition(), stateHandler->getShieldArmPosition(), aiArmMaxSpeed * elapsedSeconds));
+	me->setShieldArmRotation(capRotation(me->getShieldArmRotation(), stateHandler->getShieldArmRotation(), aiArmMaxRotation * elapsedSeconds));
 	if (newState != state) {
 		delete stateHandler;
 		switch (newState)
@@ -50,6 +68,7 @@ void AI::update() {
 		state = newState;
 		std::cout << "AI changed state to " << AIStateNames[state] << '\n';
 	}
+	lastUpdateTime = time;
 }
 
 AI::~AI() {

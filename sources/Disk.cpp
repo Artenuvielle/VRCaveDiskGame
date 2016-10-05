@@ -137,8 +137,9 @@ void Disk::update() {
 			if ((transform->getTranslation().z() < targetEnemyPosition.z() && diskType == userFaction) ||
 				(transform->getTranslation().z() > targetEnemyPosition.z() && diskType == enemyFaction)) {
 				vectorToTarget = momentum;
+			} else {
+				vectorToTarget = targetEnemyPosition - transform->getTranslation();
 			}
-			vectorToTarget = targetEnemyPosition - transform->getTranslation();
 			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
 			forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
 		} else {

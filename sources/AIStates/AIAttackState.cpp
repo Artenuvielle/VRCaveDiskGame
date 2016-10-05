@@ -35,19 +35,25 @@ Real32 quadRand(Real32 scale) {
 AIAttackState::AIAttackState(Player* me) : AIStateHandler(me) {
 	startPosition = diskArmPosition;
 	startDirection = Vec3f(0, 0, 0);
-	Vec3f randomDrawStartDirection(osgRand() - 0.5f, (osgRand() - 0.5f) * 0.7f, (osgRand() - 0.8f));
-	std::cout << "startdir     " << randomDrawStartDirection << "\n";
+	
+	Vec3f rotatedShoulderOffset(25,0,0);
+	headRotation.multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+
+	Vec3f randomDrawStartDirection(osgRand() - 0.3f, (osgRand() - 0.7f) * 0.7f, (osgRand() - 0.8f) * 0.2f);
 	randomDrawStartDirection.normalize();
-	std::cout << "startdirnorm " << randomDrawStartDirection << "\n";
-	startDrawingPosition = me->getTorsoPosition() + Vec3f(-25,0,0) + randomDrawStartDirection * osgPow(osgRand(), 2) * 40;
-	//startDrawingPosition = getPositionForAIInBounds();
+	startDrawingPosition = me->getTorsoPosition() - rotatedShoulderOffset + randomDrawStartDirection * osgPow(osgRand(), 2) * 40;
+	startDrawingPosition = getPositionForAIInBounds(startDrawingPosition);
+	
 	startDrawingDirection = Vec3f(0.f, 0.f, -1.f);
-	Vec3f randomDrawEndDirection((osgRand() - 0.5f), (osgRand() - 0.5f), (osgRand() - 1.f));
-	randomDrawStartDirection.normalize();
-	endDrawingPosition = startDrawingPosition + randomDrawEndDirection * osgPow(osgRand(), 2) * 70;
-	//endDrawingPosition = getPositionForAIInBounds();
+	
+	Vec3f randomDrawEndDirection((osgRand() - 0.5f) * 0.5f, (osgRand() - 0.5f) * 0.5f, osgRand());
+	randomDrawEndDirection.normalize();
+	endDrawingPosition = startDrawingPosition + randomDrawEndDirection * (osgPow(osgRand(), 2) * 20 + 50);
+	endDrawingPosition = getPositionForAIInBounds(endDrawingPosition);
+	
 	endDrawingDirection = endDrawingPosition - startDrawingPosition;
-	endDrawingPosition.normalize();
+	//endDrawingDirection.normalize();
+	
 	distanceToDrawStart = splineLengthApproximation(4, startPosition, startDrawingPosition, startDirection, startDrawingDirection);
 	distanceToDrawEnd = splineLengthApproximation(4, startDrawingPosition, endDrawingPosition, startDrawingDirection, endDrawingDirection);
 	startTime = glutGet(GLUT_ELAPSED_TIME);
@@ -76,11 +82,31 @@ AIState AIAttackState::update() {
 			diskArmPosition = splineInterpolation(splinePercent, startPosition, startDrawingPosition, startDirection, startDrawingDirection);
 		}
 	}
-	diskArmRotation = Quaternion(Vec3f(1,0,0), diskArmPosition - (me->getTorsoPosition() + Vec3f(-25,0,0)));
+	Vec3f rotatedShoulderOffset(25,0,0);
+	headRotation.multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+	Vec3f shoulderPosition = me->getTorsoPosition() - rotatedShoulderOffset;
+	Vec3f armDirection = diskArmPosition - me->getTorsoPosition();
+	armDirection.normalize();
+	//std::cout << armDirection << "\n";
+	if (isDrawing) {
+		diskArmRotation = Quaternion(Vec3f(0,1,0), Vec3f(0,0,1).enclosedAngle(Vec3f(armDirection.x(), 0, armDirection.z())));
+	} else {
+		diskArmRotation = Quaternion(Vec3f(0,1,0), Vec3f(0,0,1).enclosedAngle(Vec3f(armDirection.x(), 0, armDirection.z()))) * Quaternion(Vec3f(1,0,0), osgDegree2Rad(90 * (1 - splinePercent)));
+	}
+
+	Vec3f ellbowDirection;
+	diskArmRotation.multVec(Vec3f(0,0,-30), ellbowDirection);
+	Vec3f ellbowPosition = diskArmPosition + ellbowDirection;
+	Vec3f shoulderDirection = me->getTorsoPosition() - ellbowPosition;
+	shoulderDirection.normalize();
+	shoulderDirection *= 30;
+	Vec3f nextShoulderPosition = ellbowPosition + shoulderDirection;
+	Vec3f shoulderOffset = nextShoulderPosition - shoulderPosition;
 	
-	headPosition = aiDefaultHeadPosition + Vec3f(osgCos(time / 1000.f), osgSin(time / 1000.f) * osgCos(time / 1000.f)) * 10;
-	headRotation = Quaternion();
-	shieldArmPosition = headPosition + Vec3f(25,-60,0);
+	headPosition = me->getHeadPosition() + shoulderOffset;
+	Vec3f armDistance = me->getDiskArmPosition() - me->getShieldArmPosition();
+	headRotation = Quaternion(Vec3f(-1, 0, 0), Vec3f(armDistance.x(), 0, armDistance.z()));
+	shieldArmPosition = headPosition + Vec3f(0,-60,0) + rotatedShoulderOffset;
 	shieldArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90));
 	return nextState;
 }

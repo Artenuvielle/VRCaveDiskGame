@@ -49,6 +49,7 @@ public:
 	~AI();
 private:
 	Player* me;
+	Real32 lastUpdateTime;
 	AIState state;
 	AIStateHandler* stateHandler;
 };

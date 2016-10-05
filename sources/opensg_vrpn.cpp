@@ -72,7 +72,7 @@ T scale_tracker2cm(const T& value)
 }
 
 auto head_orientation = Quaternion(Vec3f(0.f, 1.f, 0.f), 3.141f);
-auto head_position = Vec3f(0.f, 170.f, 130.f);	// a 1.7m Person 2m in front of the scene
+auto head_position = Vec3f(0.f, 170.f, -600.f);//130.f);	// a 1.7m Person 2m in front of the scene
 
 void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tracker)
 {
