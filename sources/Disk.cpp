@@ -124,8 +124,6 @@ Vec3f Disk::calculateMovement(Real32 deltaTime) {
 	return deltaTime * diskSpeed * momentum;
 }
 
-const Real32 WALL_Z_DIFF = WALL_Z_MAX - WALL_Z_MIN;
-
 void Disk::update() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
@@ -271,10 +269,6 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		lastCollisionTime = glutGet(GLUT_ELAPSED_TIME);
 	}
 }
-
-const Real32 WALL_X_MID = (WALL_X_MAX + WALL_X_MIN) / 2;
-const Real32 WALL_Y_MID = (WALL_Y_MAX + WALL_Y_MIN) / 2;
-const Real32 WALL_Z_MID = (WALL_Z_MAX + WALL_Z_MIN) / 2;
 
 Vec3f getWallNormal(Vec3f pos, CollisionWallNormal wall) {
 	switch (wall)

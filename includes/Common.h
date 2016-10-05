@@ -31,6 +31,11 @@ const Real32 WALL_Y_MIN = 0;
 const Real32 WALL_Z_MAX = 135;
 const Real32 WALL_Z_MIN = -945;
 
+const Real32 WALL_X_MID = (WALL_X_MAX + WALL_X_MIN) / 2;
+const Real32 WALL_Y_MID = (WALL_Y_MAX + WALL_Y_MIN) / 2;
+const Real32 WALL_Z_MID = (WALL_Z_MAX + WALL_Z_MIN) / 2;
+const Real32 WALL_Z_DIFF = WALL_Z_MAX - WALL_Z_MIN;
+
 const Real32 PLAYER_HEAD_SIZE = 15;
 const Real32 PLAYER_TORSO_HEAD_OFFSET = 10;
 const Real32 PLAYER_GEOMETRY_SCALE = 2;
