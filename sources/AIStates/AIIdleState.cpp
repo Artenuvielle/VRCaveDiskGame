@@ -5,7 +5,7 @@
 OSG_USING_NAMESPACE
 
 AIIdleState::AIIdleState(Player* me) : AIStateHandler(me) {
-	minTimeForAttack = glutGet(GLUT_ELAPSED_TIME) + (aiMinTimeUntilAttack + osgRand() * 1.5f) * 1000;
+	minTimeForAttack = 0;
 }
 
 AIState AIIdleState::update() {
@@ -19,8 +19,12 @@ AIState AIIdleState::update() {
 	diskArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(90));
 	shieldArmPosition = headPosition + Vec3f(0,-60,0) + rotatedShoulderOffset;
 	shieldArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90));
-	if (time > minTimeForAttack && me->getDisk()->getState() == DISK_STATE_READY) {
-		return AI_STATE_ATTACK;
+	if (me->getDisk()->getState() == DISK_STATE_READY) {
+		if (minTimeForAttack == 0) {
+			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 1.5f) * 1000;
+		} else if(time > minTimeForAttack) {
+			return AI_STATE_ATTACK;
+		}
 	}
 	return AI_STATE_IDLE;
 }
