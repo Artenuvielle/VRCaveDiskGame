@@ -11,3 +11,4 @@ start_vs_user.lnk
 user.cmake
 UserTemplate.user
 windows_run_cmake.bat
+*Thumbs.db

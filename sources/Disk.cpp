@@ -87,6 +87,10 @@ bool Disk::setRotation(Quaternion newRotation) {
 	return false;
 }
 
+void Disk::setEnemyShield(Shield* othersShield) {
+	enemyShield = othersShield;
+}
+
 Quaternion Disk::getRotation() {
 	return transform->getRotation();
 }
@@ -175,7 +179,21 @@ void Disk::update() {
 		Quaternion aroundAxisRotation(Vec3f(0,-1,0), osgDegree2Rad((time - lastPositionUpdateTime) * rotationAroundAxis / 1000 * diskAxisRotationFactor));
 		transform->setRotation(Quaternion(forward, momentum) * axisRotation * aroundAxisRotation);
 
-		moveDiskAtLeastUntilCollision(time - lastPositionUpdateTime);
+		//detecting wall collisions and moving
+		moveDiskAtLeastUntilWallCollision(time - lastPositionUpdateTime);
+		// detecting enemy collisons
+		if (state == DISK_STATE_FREE_FLY) {
+			// detect player model collision
+			if (collidesWithEnemyShield()) {
+				std::cout << "Disk was defended with shield" << '\n';
+				state = DISK_STATE_RETURNING;
+				// mirror momentum on shield surface
+				Vec3f shieldNormal;
+				enemyShield->getRotation().multVec(Vec3f(0, 1, 0), shieldNormal);
+				momentum -= shieldNormal * 2 * (momentum.dot(shieldNormal));
+			}
+		}
+		// catching disks...
 		if (state == DISK_STATE_RETURNING) {
 			if (diskType == userFaction && transform->getTranslation().z() > targetOwnerPosition.z()) {
 				rotationAroundAxis = 0;
@@ -189,14 +207,14 @@ void Disk::update() {
 	lastPositionUpdateTime = time;
 }
 
-void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
+void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 	Real32 x,y,z;
 	Real32 stepLengthPercentage = 1.f;
 	Vec3f nextMomentum(momentum);
 	Real32 nextTargetAngle;
 	bool collided = false;
 	transform->getTranslation().getSeparateValues(x,y,z);
-	transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
+	//transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
 	Vec3f nearestXOffset = currentAxis.cross(Vec3f(1,0,0)).cross(currentAxis);
 	Vec3f nearestYOffset = currentAxis.cross(Vec3f(0,1,0)).cross(currentAxis);
 	Vec3f nearestZOffset = currentAxis.cross(Vec3f(0,0,1)).cross(currentAxis);
@@ -205,13 +223,13 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 	nearestZOffset *= diskRadius / nearestZOffset.length();
 	Vec3f moveVector = calculateMovement(deltaTime);
 	// TODO: optimize to select only x values and then add them up
-	if ((transform->getTranslation() + nearestXOffset + moveVector * stepLengthPercentage).x() > WALL_X_MAX) {
+	if ((transform->getTranslation().x() + nearestXOffset.x() + moveVector.x() * stepLengthPercentage) > WALL_X_MAX) {
 		nextMomentum = Vec3f(-nextMomentum.x(), nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_X_MAX - x - nearestXOffset.x()) / moveVector.x();
 		createAnimationAtCollisionPoint(Vec3f(WALL_X_MAX,y,z), COLLISION_WALL_NORMAL_X);
-	} else if((transform->getTranslation() - nearestXOffset + moveVector * stepLengthPercentage).x() < WALL_X_MIN) {
+	} else if((transform->getTranslation().x() - nearestXOffset.x() + moveVector.x() * stepLengthPercentage) < WALL_X_MIN) {
 		nextMomentum = Vec3f(-nextMomentum.x(), nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
@@ -219,13 +237,13 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		createAnimationAtCollisionPoint(Vec3f(WALL_X_MIN,y,z), COLLISION_WALL_NORMAL_X);
 	}
 
-	if ((transform->getTranslation() + nearestYOffset + moveVector * stepLengthPercentage).y() > WALL_Y_MAX) {
+	if ((transform->getTranslation().y() + nearestYOffset.y() + moveVector.y() * stepLengthPercentage) > WALL_Y_MAX) {
 		nextMomentum = Vec3f(nextMomentum.x(), -nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
 		stepLengthPercentage = (WALL_Y_MAX - y - nearestYOffset.y()) / moveVector.y();
 		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MAX,z), COLLISION_WALL_NORMAL_Y);
-	} else if((transform->getTranslation() - nearestYOffset + moveVector * stepLengthPercentage).y() < WALL_Y_MIN) {
+	} else if((transform->getTranslation().y() - nearestYOffset.y() + moveVector.y() * stepLengthPercentage) < WALL_Y_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), -nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
@@ -233,7 +251,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MIN,z), COLLISION_WALL_NORMAL_Y);
 	}
 	
-	if ((transform->getTranslation() + nearestZOffset + moveVector * stepLengthPercentage).z() > WALL_Z_MAX) {
+	if ((transform->getTranslation().z() + nearestZOffset.z() + moveVector.z() * stepLengthPercentage) > WALL_Z_MAX) {
 		nextMomentum = Vec3f(nextMomentum.x(), nextMomentum.y(), -nextMomentum.z());
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
@@ -243,7 +261,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "enemy disk returning" << '\n';
 		}
-	} else if((transform->getTranslation() - nearestZOffset + moveVector * stepLengthPercentage).z() < WALL_Z_MIN) {
+	} else if((transform->getTranslation().z() - nearestZOffset.z() + moveVector.z() * stepLengthPercentage) < WALL_Z_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), nextMomentum.y(), -nextMomentum.z());
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
@@ -254,6 +272,7 @@ void Disk::moveDiskAtLeastUntilCollision(Real32 deltaTime) {
 			std::cout << "player disk returning" << '\n';
 		}
 	}
+
 	// making sure disk won't get into walls at all...
 	Vec3f newPosition = transform->getTranslation() + moveVector * stepLengthPercentage;
 	newPosition = Vec3f(
@@ -356,6 +375,35 @@ void Disk::createWallAnimationsAtPositionFacingDirection(Vec3f position, Collisi
 	Vec3f wallNormal = getWallNormal(position, wall);
 	// correction with wall normal for not intersecting with the box
 	createWallCollisionAnimation(position + wallNormal * 1, collisionAnimationSize, collisionAnimationSize, wallNormal, diskType);
+}
+
+bool Disk::collidesWithEnemyShield() {
+	// simple radius detection
+	Vec3f shieldToDisk = getPosition() - enemyShield->getPosition();
+	Real32 addedRadiuses = enemyShield->getRadius() + diskRadius;
+	Real32 addedRadiusesSquared = addedRadiuses * addedRadiuses;
+	if (shieldToDisk.squareLength() < addedRadiusesSquared) {
+		// more complex circle plane collision detection
+		Vec3f shieldNormal;
+		enemyShield->getRotation().multVec(Vec3f(0,1,0), shieldNormal);
+		Real32 angleBetweenNormals = currentAxis.enclosedAngle(shieldNormal);
+		Vec3f intersectionLineDirection = currentAxis.cross(shieldNormal);
+		Vec3f shieldToIntersectionLineDirection = intersectionLineDirection.cross(shieldNormal);
+		if (shieldToIntersectionLineDirection.dot(currentAxis) == 0) {
+			// the circles lie in the same plane
+			return false;
+		} else {
+			Vec3f shieldToIntersectionLine = shieldToIntersectionLineDirection * (shieldToDisk.dot(currentAxis)/shieldToIntersectionLineDirection.dot(currentAxis));
+			Quaternion shieldProjectionRotation(intersectionLineDirection, angleBetweenNormals);
+			Vec3f shieldProjectedMiddlePointOffset;
+			shieldProjectionRotation.multVec(shieldToIntersectionLine * (-1), shieldProjectedMiddlePointOffset);
+			Vec3f shieldProjectedPosition = enemyShield->getPosition() + shieldToIntersectionLine + shieldProjectedMiddlePointOffset;
+			if ((shieldProjectedPosition - getPosition()).squareLength() < addedRadiusesSquared) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 Quaternion interpolateVector(Vec3f vec1, Vec3f vec2, Real32 factor) {

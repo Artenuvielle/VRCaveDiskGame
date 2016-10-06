@@ -8,6 +8,7 @@
 #include <OSGCSM/OSGCAVESceneManager.h>
 
 #include "Common.h"
+#include "Shield.h"
 
 OSG_USING_NAMESPACE
 
@@ -33,6 +34,7 @@ public:
 	void setTargetEnemyPosition(Vec3f newPosition);
 	Vec3f getTargetEnemyPosition();
 	bool setRotation(Quaternion newRotation);
+	void setEnemyShield(Shield* enemyShield);
 	Quaternion getRotation();
 	DiskState getState();
 
@@ -42,10 +44,11 @@ public:
 	void update();
 	Disk(PlayerFaction type);
 private:
-	void moveDiskAtLeastUntilCollision(Real32 deltaTime);
+	void moveDiskAtLeastUntilWallCollision(Real32 deltaTime);
 	Vec3f calculateMovement(Real32 deltaTime);
 	void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
 	void createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal direction);
+	bool collidesWithEnemyShield();
 	Vec3f momentum;
 	Vec3f targetOwnerPosition;
 	Vec3f targetEnemyPosition;
@@ -62,6 +65,7 @@ private:
 	ComponentTransformRecPtr transform;
 	Real32 lastPositionUpdateTime;
 	Real32 lastRotationUpdateTime;
+	Shield* enemyShield;
 	DiskState state;
 };
 

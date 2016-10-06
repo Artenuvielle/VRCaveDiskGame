@@ -3,8 +3,29 @@
 #include "AIStates/AIIdleState.h"
 #include "AIStates/AIAttackState.h"
 #include "AIStates/AIDefendState.h"
+#include "AIStates/AICatchState.h"
 
 OSG_USING_NAMESPACE
+
+Real32 h1(Real32 x) { return 2*x*x*x-3*x*x+1; }
+Real32 h2(Real32 x) { return -2*x*x*x+3*x*x; }
+Real32 h3(Real32 x) { return x*x*x-2*x*x+x; }
+Real32 h4(Real32 x) { return x*x*x-x*x; }
+
+Vec3f splineInterpolation(Real32 t, Vec3f p0, Vec3f p1, Vec3f d0, Vec3f d1) {
+	return p0*h1(t) + p1*h2(t) + d0*h3(t) + d1*h4(t);
+}
+
+Real32 splineLengthApproximation(Int32 steps, Vec3f p0, Vec3f p1, Vec3f d0, Vec3f d1) {
+	Real32 res = 0;
+	Vec3f lastPos = p0;
+	for(Int32 i = 0; i < steps + 1; i++) {
+		Vec3f newPos = splineInterpolation((i + 1.f) / (steps + 1.f), p0, p1, d0, d1);
+		res += (newPos - lastPos).length();
+		lastPos = newPos;
+	}
+	return res;
+}
 
 Vec3f getPositionForAIInBounds(Vec3f input) {
 	return Vec3f(osgMax(WALL_X_MIN + 30,  osgMin(WALL_X_MAX - 30, input.x())),
@@ -59,6 +80,9 @@ void AI::update() {
 			break;
 		case AI_STATE_DEFEND:
 			stateHandler = new AIDefendState(me);
+			break;
+		case AI_STATE_CATCH:
+			stateHandler = new AICatchState(me);
 			break;
 		case AI_STATE_IDLE:
 		default:

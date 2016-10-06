@@ -98,6 +98,7 @@ Player* Player::getEnemy() {
 
 void Player::setEnemy(Player* newEnemy) {
 	enemy = newEnemy;
+	disk->setEnemyShield(enemy->getShield());
 }
 
 Vec3f Player::getTorsoPosition() {

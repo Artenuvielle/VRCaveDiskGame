@@ -15,6 +15,11 @@ class AIDefendState : public AIStateHandler {
 public:
 	AIState update();
 	AIDefendState(Player* me);
+private:
+	Vec3f calculateNewTargetPosition();
+	Vec3f startShieldArmPosition;
+	Vec3f targetShieldArmPosition;
+	Real32 startTime;
 };
 
 #endif

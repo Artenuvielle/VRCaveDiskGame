@@ -51,16 +51,16 @@ const Real32 shieldMaximumRadius = 20; // cm
 const Real32 shieldGrowStartDistance = 400; // cm
 const Real32 shieldGrowEndDistance = 250; // cm
 
-const Real32 diskEnemyMomentumAttractionFactor = 1.2f; // deg/sec
-const Real32 diskOwnerMomentumAttractionFactor = 1.5f; // deg/sec
+const Real32 diskEnemyMomentumAttractionFactor = 1.5f; // deg/sec
+const Real32 diskOwnerMomentumAttractionFactor = 1.7f; // deg/sec
 const Real32 diskMinimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
 
 const Real32 collisionAnimationSize = 150; // in cm
 
 const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
 const Real32 aiHeadMaxSpeed = 14.f; // cm/s
-const Real32 aiHeadMaxRotation = 1.f; // rad/s
-const Real32 aiArmMaxSpeed = 20.f; // cm/s
+const Real32 aiHeadMaxRotation = 0.8f; // rad/s
+const Real32 aiArmMaxSpeed = 30.f; // cm/s
 const Real32 aiArmMaxRotation = 3.f; // rad/s
 const Real32 aiMinTimeUntilAttack = 2.f; // s
 

@@ -11,13 +11,17 @@
 
 OSG_USING_NAMESPACE
 
+extern Vec3f splineInterpolation(Real32 t, Vec3f p0, Vec3f p1, Vec3f d0, Vec3f d1);
+extern Real32 splineLengthApproximation(Int32 steps, Vec3f p0, Vec3f p1, Vec3f d0, Vec3f d1);
+
 enum AIState {
 	AI_STATE_IDLE = 0,
 	AI_STATE_ATTACK,
 	AI_STATE_DEFEND,
+	AI_STATE_CATCH,
 	SIZE_OF_AI_STATE_ENUM
 };
-static const char* AIStateNames[] = { "idle", "attacking", "defending" };
+static const char* AIStateNames[] = { "idle", "attacking", "defending", "catching" };
 static_assert(sizeof(AIStateNames)/sizeof(char*) == SIZE_OF_AI_STATE_ENUM, "sizes dont match");
 
 extern Vec3f getPositionForAIInBounds(Vec3f input);
