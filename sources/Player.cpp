@@ -89,12 +89,14 @@ void Player::update() {
 };
 
 void Player::loseLife() {
-	lifeCounter->setLifeCount(lifeCounter->getLifeCount() - 1);
-	createWallAnimationsForScores(faction);
-	if (lifeCounter->getLifeCount() == 0) {
-		// game over
-		gameRunning = false;
-		std::cout << "Game over" << '\n';
+	if (gameRunning) {
+		lifeCounter->setLifeCount(lifeCounter->getLifeCount() - 1);
+		createWallAnimationsForScores(faction);
+		if (lifeCounter->getLifeCount() == 0) {
+			// game over
+			gameRunning = false;
+			std::cout << "Game over" << '\n';
+		}
 	}
 }
 
