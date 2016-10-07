@@ -10,7 +10,6 @@
 #include <OpenSG/OSGImage.h>
 #include <OSGCSM/OSGCAVESceneManager.h>
 #include <OpenSG/OSGDirectionalLight.h>
-#include <OpenSG/OSGPointLight.h>
 
 OSG_USING_NAMESPACE
 
@@ -32,7 +31,6 @@ extern SimpleMaterialRecPtr shieldRingMaterialBlue;
 extern SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 extern DirectionalLightRecPtr headLight;
-extern PointLightRecPtr blueLight;
 
 extern ComponentTransformRecPtr testTrans;
 

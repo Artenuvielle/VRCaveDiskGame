@@ -37,7 +37,6 @@ SimpleMaterialRecPtr shieldRingMaterialBlue;
 SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 DirectionalLightRecPtr headLight;
-PointLightRecPtr blueLight;
 
 ComponentTransformRecPtr testTrans;
 
@@ -175,19 +174,7 @@ NodeTransitPtr buildScene()
 	NodeRecPtr boundingBoxModelTrans = makeNodeFor(boundingBoxModelCT);
 	boundingBoxModelTrans->addChild(boundingBoxModel);
 
-	blueLight = PointLight::create();
-	blueLight->setConstantAttenuation (1);
-	blueLight->setLinearAttenuation   (0);
-	blueLight->setQuadraticAttenuation(2);
-
-	//color information
-	blueLight->setDiffuse (Color4f(1,   1,   1,   1));
-	blueLight->setAmbient (Color4f(1,   1,   1,   1));
-	blueLight->setSpecular(Color4f(1,   1,   1,   1));
-
-	NodeRecPtr blueLightNode = makeNodeFor(blueLight);
-	blueLightNode->addChild(boundingBoxModelTrans);
-	root->addChild(blueLightNode);
+	root->addChild(boundingBoxModelTrans);
 	
 	diskModelBlue = loadModelFromCache("models/disk_blue", ".3DS");
 	diskModelOrange = loadModelFromCache("models/disk_orange", ".3DS");
