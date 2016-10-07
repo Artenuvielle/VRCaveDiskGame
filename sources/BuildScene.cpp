@@ -7,6 +7,7 @@
 #endif
 
 #include <OpenSG/OSGSceneFileHandler.h>
+#include <OpenSG/OSGDirectionalLight.h>
 
 #include <OpenSG/OSGGeoBuilder.h>
 #include <OpenSG/OSGMultiPassMaterial.h>
@@ -35,6 +36,8 @@ SimpleMaterialRecPtr shieldTorusMaterialBlue;
 SimpleMaterialRecPtr shieldTorusMaterialOrange;
 SimpleMaterialRecPtr shieldRingMaterialBlue;
 SimpleMaterialRecPtr shieldRingMaterialOrange;
+
+DirectionalLightRecPtr headLight;
 
 ComponentTransformRecPtr testTrans;
 
@@ -155,8 +158,13 @@ ImageTransitPtr loadImageFromSequence(const Char8 *filename_pre, const Char8 *fi
 
 NodeTransitPtr buildScene()
 {
-	root = Node::create();
-	root->setCore(Group::create());
+	headLight = DirectionalLight::create();
+	headLight->setDiffuse(Color4f(1,1,1,1));
+	headLight->setAmbient(Color4f(1,1,1,1));
+	headLight->setSpecular(Color4f(1,1,1,1));
+	headLight->setDirection(Vec3f(0,0,-1));
+	//headLight->setBeacon(headLightPositionNode);
+	root = makeNodeFor(headLight);
 	
 	NodeRecPtr boundingBoxModel = loadModelFromCache("models/bbox", ".3DS");
 	

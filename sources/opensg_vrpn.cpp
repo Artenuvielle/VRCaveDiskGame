@@ -273,6 +273,10 @@ void setupGLUT(int *argc, char *argv[])
 	{
 		// get the time since the application started
 		int time = glutGet(GLUT_ELAPSED_TIME);
+		Vec3f forward(0,0,1);
+		head_orientation.multVec(forward, forward);
+		headLight->setDirection(forward);
+
 		if (showFPS) {
 			if (time - lastFPSUpdate > 1000) {
 				std::cout << "FPS: " << fpsCount << '\n';
@@ -424,12 +428,7 @@ int main(int argc, char **argv)
 		mgr->getWindow()->init();
 		mgr->turnWandOff();
 		
-		// alternatively use a gradient background
-		GradientBackgroundRecPtr bkg = GradientBackground::create();
-		bkg->addLine(Color3f(0.7f, 0.7f, 0.8f), 0);
-		bkg->addLine(Color3f(0.0f, 0.1f, 0.3f), 1);
-
-		mgr->getWindow()->getPort(0)->setBackground(bkg);
+		mgr->setHeadlight(false);
 	}
 	catch(const std::exception& e)
 	{
