@@ -30,6 +30,7 @@ extern SimpleMaterialRecPtr shieldRingMaterialBlue;
 extern SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 extern DirectionalLightRecPtr headLight;
+extern PointLightRecPtr blueLight;
 
 extern ComponentTransformRecPtr testTrans;
 

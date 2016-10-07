@@ -32,6 +32,10 @@ Disk::Disk(PlayerFaction type, DiskEventHandler* handler) : handler(handler) {
 
 	root->addChild(transformNode);
 
+	if (type == userFaction) {
+		blueLight->setBeacon(transformNode);
+	}
+
 	state = DISK_STATE_READY;
 
 	commitChanges();

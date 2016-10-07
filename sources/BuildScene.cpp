@@ -8,6 +8,7 @@
 
 #include <OpenSG/OSGSceneFileHandler.h>
 #include <OpenSG/OSGDirectionalLight.h>
+#include <OpenSG/OSGPointLight.h>
 
 #include <OpenSG/OSGGeoBuilder.h>
 #include <OpenSG/OSGMultiPassMaterial.h>
@@ -38,6 +39,7 @@ SimpleMaterialRecPtr shieldRingMaterialBlue;
 SimpleMaterialRecPtr shieldRingMaterialOrange;
 
 DirectionalLightRecPtr headLight;
+PointLightRecPtr blueLight;
 
 ComponentTransformRecPtr testTrans;
 
@@ -163,7 +165,6 @@ NodeTransitPtr buildScene()
 	headLight->setAmbient(Color4f(1,1,1,1));
 	headLight->setSpecular(Color4f(1,1,1,1));
 	headLight->setDirection(Vec3f(0,0,-1));
-	//headLight->setBeacon(headLightPositionNode);
 	root = makeNodeFor(headLight);
 	
 	NodeRecPtr boundingBoxModel = loadModelFromCache("models/bbox", ".3DS");
@@ -175,6 +176,16 @@ NodeTransitPtr buildScene()
 
 	NodeRecPtr boundingBoxModelTrans = makeNodeFor(boundingBoxModelCT);
 	boundingBoxModelTrans->addChild(boundingBoxModel);
+
+	blueLight = PointLight::create();
+	blueLight->setConstantAttenuation (1);
+	blueLight->setLinearAttenuation   (0);
+	blueLight->setQuadraticAttenuation(2);
+
+	//color information
+	blueLight->setDiffuse (Color4f(1,   1,   1,   1));
+	blueLight->setAmbient (Color4f(1,   1,   1,   1));
+	blueLight->setSpecular(Color4f(1,   1,   1,   1));
 
 	root->addChild(boundingBoxModelTrans);
 	
