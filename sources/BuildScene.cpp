@@ -7,8 +7,6 @@
 #endif
 
 #include <OpenSG/OSGSceneFileHandler.h>
-#include <OpenSG/OSGDirectionalLight.h>
-#include <OpenSG/OSGPointLight.h>
 
 #include <OpenSG/OSGGeoBuilder.h>
 #include <OpenSG/OSGMultiPassMaterial.h>

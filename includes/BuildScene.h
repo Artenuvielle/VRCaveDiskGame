@@ -9,6 +9,8 @@
 #include <OpenSG/OSGSimpleGeometry.h>
 #include <OpenSG/OSGImage.h>
 #include <OSGCSM/OSGCAVESceneManager.h>
+#include <OpenSG/OSGDirectionalLight.h>
+#include <OpenSG/OSGPointLight.h>
 
 OSG_USING_NAMESPACE
 
