@@ -185,7 +185,9 @@ NodeTransitPtr buildScene()
 	blueLight->setAmbient (Color4f(1,   1,   1,   1));
 	blueLight->setSpecular(Color4f(1,   1,   1,   1));
 
-	root->addChild(boundingBoxModelTrans);
+	NodeRecPtr blueLightNode = makeNodeFor(blueLight);
+	blueLightNode->addChild(boundingBoxModelTrans);
+	root->addChild(blueLightNode);
 	
 	diskModelBlue = loadModelFromCache("models/disk_blue", ".3DS");
 	diskModelOrange = loadModelFromCache("models/disk_orange", ".3DS");
