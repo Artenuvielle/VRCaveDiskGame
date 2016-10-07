@@ -31,6 +31,7 @@ public:
 	void setShieldArmRotation(Quaternion rotation);
 	Vec3f getShieldArmPosition();
 	void setShieldArmPosition(Vec3f newPosition);
+	PlayerFaction getFaction();
 	Disk* getDisk();
 	Shield* getShield();
 	LifeCounter* getLifeCounter();
@@ -40,7 +41,9 @@ public:
 	void update();
 private:
 	void recalculatePositions();
+	void loseLife();
 	bool modelIncluded;
+	PlayerFaction faction;
 	Player* enemy;
 	Disk* disk;
 	Shield* shield;

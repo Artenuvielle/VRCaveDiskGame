@@ -21,7 +21,7 @@ AIState AIIdleState::update() {
 	shieldArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90));
 	if (me->getDisk()->getState() == DISK_STATE_READY) {
 		if (minTimeForAttack == 0) {
-			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 1.5f) * 1000;
+			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 5.f) * 1000;
 		} else if(time > minTimeForAttack) {
 			return AI_STATE_ATTACK;
 		}

@@ -46,9 +46,12 @@ const Real32 lifeCounterTransparencyChangeTime = 0.2; // s
 
 const Real32 diskRadius = 15; // cm
 const Real32 diskHeight = 3; // cm
-const Real32 diskSpeed = 0.4f; // cm/ms
+const Real32 diskSpeed = 0.5f; // cm/ms
 const Real32 diskAxisRotationFactor = 100;
 const Real32 diskRotationTimeAfterCollision = 0.3f; // s
+const Real32 diskEnemyMomentumAttractionFactor = 1.8f; // deg/sec
+const Real32 diskOwnerMomentumAttractionFactor = 2.0f; // deg/sec
+const Real32 diskMinimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
 
 const Real32 shieldMinimumRadius = 2.5; // cm
 const Real32 shieldMaximumRadius = 20; // cm
@@ -56,22 +59,17 @@ const Real32 shieldGrowStartDistance = 400; // cm
 const Real32 shieldGrowEndDistance = 250; // cm
 const Int32 shieldMaximumCharges = 3;
 
-const Real32 diskEnemyMomentumAttractionFactor = 1.5f; // deg/sec
-const Real32 diskOwnerMomentumAttractionFactor = 1.7f; // deg/sec
-const Real32 diskMinimalAxialRotationAfterCollision = 0.0004f; // deg/millisec
-
 const Real32 collisionAnimationSize = 150; // in cm
+const Real32 scoreAnimationSize = 1200; // in cm
 
 const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
-const Real32 aiHeadMaxSpeed = 14.f; // cm/s
+const Real32 aiHeadMaxSpeed = 17.f; // cm/s
 const Real32 aiHeadMaxRotation = 0.8f; // rad/s
-const Real32 aiArmMaxSpeed = 30.f; // cm/s
-const Real32 aiArmMaxRotation = 3.f; // rad/s
+const Real32 aiArmMaxSpeed = 40.f; // cm/s
+const Real32 aiArmMaxRotation = 3.5f; // rad/s
 const Real32 aiMinTimeUntilAttack = 2.f; // s
 
 extern NodeRecPtr root;
-extern NodeRecPtr boundingBoxModel;
-extern ComponentTransformRecPtr boundingBoxModelCT;
 
 extern bool gameRunning;
 

@@ -3,6 +3,7 @@
 //#include <OpenSG/OSGSceneFileHandler.h>
 
 #include "BuildScene.h"
+#include "Animations.h"
 #include "Common.h"
 
 OSG_USING_NAMESPACE
@@ -16,7 +17,7 @@ ComponentTransformTransitPtr cloneModelWithTranform(NodeRecPtr modelToClone) {
 	return ComponentTransformTransitPtr(transform);
 }
 
-Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel) {
+Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel), faction(faction) {
 	enemy = nullptr;
 	headRotation = Quaternion();
 	headPosition = Vec3f(0,170,30);
@@ -71,21 +72,31 @@ void Player::update() {
 	disk->setTargetEnemyPosition(enemy->getTorsoPosition());
 	disk->update();
 
+	if (disk->getState() == DISK_STATE_RETURNING && (disk->getPosition() - diskArmPosition).squareLength() < (diskRadius + 10) * (diskRadius + 10)) {
+		disk->catchDisk();
+		shield->refillCharges();
+	}
+
 	if (enemy->getDisk()->getState() == DISK_STATE_FREE_FLY && (Vec3f(enemy->getDisk()->getPosition().x(), 0, enemy->getDisk()->getPosition().z()) - Vec3f(getTorsoPosition().x(), 0, getTorsoPosition().z())).squareLength() < (diskRadius + PLAYER_HEAD_SIZE) * (diskRadius + PLAYER_HEAD_SIZE)) {
 		if (enemy->getDisk()->getPosition().y() < getHeadPosition().y()) {
 			std::cout << "A player got hit by a disk" << '\n';
 			enemy->getDisk()->forceReturn();
-			lifeCounter->setLifeCount(lifeCounter->getLifeCount() - 1);
-			if (lifeCounter->getLifeCount() == 0) {
-				// game over
-				gameRunning = false;
-				std::cout << "Game over" << '\n';
-			}
+			loseLife();
 		}
 	}
 
 	lifeCounter->update();
 };
+
+void Player::loseLife() {
+	lifeCounter->setLifeCount(lifeCounter->getLifeCount() - 1);
+	createWallAnimationsForScores(faction);
+	if (lifeCounter->getLifeCount() == 0) {
+		// game over
+		gameRunning = false;
+		std::cout << "Game over" << '\n';
+	}
+}
 
 void Player::recalculatePositions() {
 	Vec3f headYAxisDirection;
@@ -106,6 +117,10 @@ void Player::recalculatePositions() {
 		shieldArmTransform->setTranslation(shieldArmPosition - shieldArmForward * 7.5);
 		shieldArmTransform->setRotation(shieldArmRotation);
 	}
+}
+
+PlayerFaction Player::getFaction() {
+	return faction;
 }
 
 Player* Player::getEnemy() {
@@ -182,5 +197,5 @@ LifeCounter* Player::getLifeCounter() {
 }
 
 void Player::handleDiskCatch() {
-
+	loseLife();
 }

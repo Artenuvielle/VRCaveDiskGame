@@ -132,6 +132,11 @@ bool Disk::forceReturn() {
 	return false;
 }
 
+void Disk::catchDisk() {
+	rotationAroundAxis = 0;
+	state = DISK_STATE_READY;
+}
+
 Vec3f Disk::calculateMovement(Real32 deltaTime) {
 	return deltaTime * diskSpeed * momentum;
 }
@@ -205,13 +210,9 @@ void Disk::update() {
 		if (state == DISK_STATE_RETURNING) {
 			Int32 sideFactor = (diskType == userFaction ? 1 : -1);
 			if (sideFactor * transform->getTranslation().z() > sideFactor * targetOwnerPosition.z()) {
-				rotationAroundAxis = 0;
-				state = DISK_STATE_READY;
+				catchDisk();
 				handler->handleDiskCatch();
-			}/* else if(diskType != userFaction && transform->getTranslation().z() < targetOwnerPosition.z()) {
-				rotationAroundAxis = 0;
-				state = DISK_STATE_READY;
-			}*/
+			}
 		}
 	}
 	lastPositionUpdateTime = time;
@@ -238,13 +239,13 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_X_MAX - x - nearestXOffset.x()) / moveVector.x();
-		createAnimationAtCollisionPoint(Vec3f(WALL_X_MAX,y,z), COLLISION_WALL_NORMAL_X);
+		createAnimationAtCollisionPoint(Vec3f(WALL_X_MAX,y,z), collisionAnimationSize, COLLISION_WALL_NORMAL_X, diskType);
 	} else if((transform->getTranslation().x() - nearestXOffset.x() + moveVector.x() * stepLengthPercentage) < WALL_X_MIN) {
 		nextMomentum = Vec3f(-nextMomentum.x(), nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_X_MIN - x + nearestXOffset.x()) / moveVector.x();
-		createAnimationAtCollisionPoint(Vec3f(WALL_X_MIN,y,z), COLLISION_WALL_NORMAL_X);
+		createAnimationAtCollisionPoint(Vec3f(WALL_X_MIN,y,z), collisionAnimationSize, COLLISION_WALL_NORMAL_X, diskType);
 	}
 
 	if ((transform->getTranslation().y() + nearestYOffset.y() + moveVector.y() * stepLengthPercentage) > WALL_Y_MAX) {
@@ -252,13 +253,13 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
 		stepLengthPercentage = (WALL_Y_MAX - y - nearestYOffset.y()) / moveVector.y();
-		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MAX,z), COLLISION_WALL_NORMAL_Y);
+		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MAX,z), collisionAnimationSize, COLLISION_WALL_NORMAL_Y, diskType);
 	} else if((transform->getTranslation().y() - nearestYOffset.y() + moveVector.y() * stepLengthPercentage) < WALL_Y_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), -nextMomentum.y(), nextMomentum.z());
 		nextTargetAngle = currentAngle < 90 || currentAngle >= 270 ? 0 : 180;
 		collided = true;
 		stepLengthPercentage = (WALL_Y_MIN - y + nearestYOffset.y()) / moveVector.y();
-		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MIN,z), COLLISION_WALL_NORMAL_Y);
+		createAnimationAtCollisionPoint(Vec3f(x,WALL_Y_MIN,z), collisionAnimationSize, COLLISION_WALL_NORMAL_Y, diskType);
 	}
 	
 	if ((transform->getTranslation().z() + nearestZOffset.z() + moveVector.z() * stepLengthPercentage) > WALL_Z_MAX) {
@@ -266,7 +267,7 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MAX - z - nearestZOffset.z()) / moveVector.z();
-		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MAX), COLLISION_WALL_NORMAL_Z);
+		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MAX), collisionAnimationSize, COLLISION_WALL_NORMAL_Z, diskType);
 		if (diskType != userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "enemy disk returning" << '\n';
@@ -276,7 +277,7 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		nextTargetAngle = currentAngle < 180 ? 90 : 270;
 		collided = true;
 		stepLengthPercentage = (WALL_Z_MIN - z + nearestZOffset.z()) / moveVector.z();
-		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MIN), COLLISION_WALL_NORMAL_Z);
+		createAnimationAtCollisionPoint(Vec3f(x,y,WALL_Z_MIN), collisionAnimationSize, COLLISION_WALL_NORMAL_Z, diskType);
 		if (diskType == userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "player disk returning" << '\n';
@@ -297,94 +298,6 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		momentum = nextMomentum;
 		lastCollisionTime = glutGet(GLUT_ELAPSED_TIME);
 	}
-}
-
-Vec3f getWallNormal(Vec3f pos, CollisionWallNormal wall) {
-	switch (wall)
-	{
-	case COLLISION_WALL_NORMAL_X:
-		return Vec3f((pos.x() > WALL_X_MID ? -1 : 1), 0, 0);
-		break;
-	case COLLISION_WALL_NORMAL_Y:
-		return Vec3f(0, (pos.y() > WALL_Y_MID ? -1 : 1), 0);
-		break;
-	case COLLISION_WALL_NORMAL_Z:
-		return Vec3f(0, 0, (pos.z() > WALL_Z_MID ? -1 : 1));
-		break;
-	}
-}
-
-void Disk::createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction) {
-	Real32 distXTop = osgAbs(WALL_X_MAX - position.x());
-	Real32 distXBot = osgAbs(WALL_X_MIN - position.x());
-	Real32 distYTop = osgAbs(WALL_Y_MAX - position.y());
-	Real32 distYBot = osgAbs(WALL_Y_MIN - position.y());
-	Real32 distZTop = osgAbs(WALL_Z_MAX - position.z());
-	Real32 distZBot = osgAbs(WALL_Z_MIN - position.z());
-	createWallAnimationsAtPositionFacingDirection(position, direction);
-	switch (direction)
-	{
-	case COLLISION_WALL_NORMAL_X:
-		if (distYTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x() + (position.x() > WALL_X_MID ? 1 : -1) * distYTop, WALL_Y_MAX, position.z());
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Y);
-		}
-		if (distYBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x() + (position.x() > WALL_X_MID ? 1 : -1) * distYBot, WALL_Y_MIN, position.z());
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Y);
-		}
-		if (distZTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x() + (position.x() > WALL_X_MID ? 1 : -1) * distZTop, position.y(), WALL_Z_MAX);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Z);
-		}
-		if (distZBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x() + (position.x() > WALL_X_MID ? 1 : -1) * distZBot, position.y(), WALL_Z_MIN);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Z);
-		}
-		break;
-	case COLLISION_WALL_NORMAL_Y:
-		if (distXTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(WALL_X_MAX, position.y() + (position.y() > WALL_Y_MID ? 1 : -1) * distXTop, position.z());
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_X);
-		}
-		if (distXBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(WALL_X_MIN, position.y() + (position.y() > WALL_Y_MID ? 1 : -1) * distXBot, position.z());
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_X);
-		}
-		if (distZTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x(), position.y() + (position.y() > WALL_Y_MID ? 1 : -1) * distZTop, WALL_Z_MAX);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Z);
-		}
-		if (distZBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x(), position.y() + (position.y() > WALL_Y_MID ? 1 : -1) * distZBot, WALL_Z_MIN);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Z);
-		}
-		break;
-	case COLLISION_WALL_NORMAL_Z:
-		if (distXTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(WALL_X_MAX, position.y(), position.z() + (position.z() > WALL_Z_MID ? 1 : -1) * distXTop);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_X);
-		}
-		if (distXBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(WALL_X_MIN, position.y(), position.z() + (position.z() > WALL_Z_MID ? 1 : -1) * distXBot);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_X);
-		}
-		if (distYTop < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x(), WALL_Y_MAX, position.z() + (position.z() > WALL_Z_MID ? 1 : -1) * distYTop);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Y);
-		}
-		if (distYBot < collisionAnimationSize / 2) {
-			Vec3f newPosition(position.x(), WALL_Y_MIN, position.z() + (position.z() > WALL_Z_MID ? 1 : -1) * distYBot);
-			createWallAnimationsAtPositionFacingDirection(newPosition, COLLISION_WALL_NORMAL_Y);
-		}
-		break;
-	}
-}
-
-void Disk::createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal wall) {
-	Vec3f wallNormal = getWallNormal(position, wall);
-	// correction with wall normal for not intersecting with the box
-	createWallCollisionAnimation(position + wallNormal * (1.f - osgRand() * 0.3), collisionAnimationSize, collisionAnimationSize, wallNormal, diskType);
 }
 
 bool Disk::collidesWithEnemyShield() {

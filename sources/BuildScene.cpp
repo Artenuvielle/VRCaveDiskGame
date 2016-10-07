@@ -122,18 +122,47 @@ NodeTransitPtr loadModelFromCache(const Char8 *filename, const Char8 *fileExtens
 	}
 }
 
+ImageTransitPtr loadImageFromSequence(const Char8 *filename_pre, const Char8 *filename_sur, int numFrames, Real32 fps) {
+	std::vector<ImageRecPtr> images;
+	for (int i = 0; i < numFrames; i++) {
+		ImageRecPtr image = Image::create();
+		std::stringstream s;
+		s << filename_pre << (i < 10 ? "0" : "") << i << filename_sur;
+		image->read(s.str().c_str());
+		images.push_back(image);
+	}
+
+	ImageRecPtr finalImage = Image::create();
+	ImageRecPtr firstImage = images.at(0);
+	finalImage->set(
+		firstImage->getPixelFormat(),
+		firstImage->getWidth(),
+		firstImage->getHeight(),
+		firstImage->getDepth(),
+		firstImage->getMipMapCount(),
+		images.size(),
+		1.f / fps
+		);
+	
+	UInt8 *destData;
+	for(int i = 0; i < images.size(); i++) {
+		destData = finalImage->editData(0, i);
+		memcpy(destData, images.at(i)->getData(), images.at(i)->getFrameSize());
+	}
+
+	return ImageTransitPtr(finalImage);
+}
+
 NodeTransitPtr buildScene()
 {
 	root = Node::create();
 	root->setCore(Group::create());
 	
-	boundingBoxModel = loadModelFromCache("models/bbox", ".3DS");
+	NodeRecPtr boundingBoxModel = loadModelFromCache("models/bbox", ".3DS");
 	
-	/*ComponentTransformRecPtr */boundingBoxModelCT = ComponentTransform::create();
+	ComponentTransformRecPtr boundingBoxModelCT = ComponentTransform::create();
 	boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
 	boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(-90)));
-	//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
-	//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(90)) * Quaternion(Vec3f(0,1,0),osgDegree2Rad(180)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
 	boundingBoxModelCT->setScale(Vec3f(270.f,270.f,270.f));
 
 	NodeRecPtr boundingBoxModelTrans = makeNodeFor(boundingBoxModelCT);
@@ -149,64 +178,8 @@ NodeTransitPtr buildScene()
 	playerModelArmBlue = loadModelFromCache("models/robot_arm_blue", ".OBJ");
 	playerModelArmOrange = loadModelFromCache("models/robot_arm_orange", ".OBJ");
 
-	std::vector<ImageRecPtr> collisionImagesBlue;
-	std::vector<ImageRecPtr> collisionImagesOrange;
-
-	for (int i = 0; i < 25; i++) {
-		ImageRecPtr image = Image::create();
-		std::stringstream s;
-		s << "models/wall_collision_blue/wall_collision_blue_000" << (i < 10 ? "0" : "") << i << ".png";
-		image->read(s.str().c_str());
-		collisionImagesBlue.push_back(image);
-	}
-
-	for (int i = 0; i < 25; i++) {
-		ImageRecPtr image = Image::create();
-		std::stringstream s;
-		s << "models/wall_collision_orange/wall_collision_orange_000" << (i < 10 ? "0" : "") << i << ".png";
-		image->read(s.str().c_str());
-		collisionImagesOrange.push_back(image);
-	}
-
-	collisionImageBlue = Image::create();
-	ImageRecPtr firstImageBlue = collisionImagesBlue.at(0);
-	collisionImageBlue->set(
-		firstImageBlue->getPixelFormat(),
-		firstImageBlue->getWidth(),
-		firstImageBlue->getHeight(),
-		firstImageBlue->getDepth(),
-		firstImageBlue->getMipMapCount(),
-		collisionImagesBlue.size(),
-		0.04f
-		);
-	
-	collisionImageOrange = Image::create();
-	ImageRecPtr firstImageOrange = collisionImagesOrange.at(0);
-	collisionImageOrange->set(
-		firstImageOrange->getPixelFormat(),
-		firstImageOrange->getWidth(),
-		firstImageOrange->getHeight(),
-		firstImageOrange->getDepth(),
-		firstImageOrange->getMipMapCount(),
-		collisionImagesOrange.size(),
-		0.04f
-		);
-
-	//unsigned char
-	UInt8 *destData;
-	for(int i = 0; i < collisionImagesBlue.size(); i++) {
-		destData = collisionImageBlue->editData(0, i);
-		memcpy(destData, collisionImagesBlue.at(i)->getData(), collisionImagesBlue.at(i)->getFrameSize());
-	}
-	for(int i = 0; i < collisionImagesOrange.size(); i++) {
-		destData = collisionImageOrange->editData(0, i);
-		memcpy(destData, collisionImagesOrange.at(i)->getData(), collisionImagesOrange.at(i)->getFrameSize());
-	}
-
-	/*collisionImageBlue = Image::create();
-	collisionImageBlue->read("models/wall_collision_blue.gif");
-	collisionImageOrange = Image::create();
-	collisionImageOrange->read("models/wall_collision_orange.gif");*/
+	collisionImageBlue = loadImageFromSequence("models/wall_collision_blue/wall_collision_blue_000", ".png", 25, 25);
+	collisionImageOrange = loadImageFromSequence("models/wall_collision_orange/wall_collision_orange_000", ".png", 25, 25);
 
 	shieldTorusMaterialBlue = SimpleMaterial::create();
 	shieldTorusMaterialBlue->setDiffuse(colorBlue);

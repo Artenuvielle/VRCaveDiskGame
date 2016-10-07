@@ -19,12 +19,6 @@ enum DiskState {
 	DISK_STATE_RETURNING
 };
 
-enum CollisionWallNormal {
-	COLLISION_WALL_NORMAL_X = 0,
-	COLLISION_WALL_NORMAL_Y,
-	COLLISION_WALL_NORMAL_Z
-};
-
 class DiskEventHandler {
 public:
 	virtual void handleDiskCatch() = 0;
@@ -46,13 +40,12 @@ public:
 	bool startDraw(Vec3f pos);
 	bool endDraw(Vec3f pos);
 	bool forceReturn();
+	void catchDisk();
 	void update();
 	Disk(PlayerFaction type, DiskEventHandler* handler);
 private:
 	void moveDiskAtLeastUntilWallCollision(Real32 deltaTime);
 	Vec3f calculateMovement(Real32 deltaTime);
-	void createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal direction);
-	void createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal direction);
 	bool collidesWithEnemyShield();
 	DiskEventHandler* handler;
 	Vec3f momentum;
