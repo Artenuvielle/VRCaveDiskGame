@@ -158,7 +158,12 @@ void Disk::update() {
 			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
 			forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
 		} else {
-			vectorToTarget = targetOwnerPosition - transform->getTranslation();
+			if ((transform->getTranslation().z() > targetOwnerPosition.z() && diskType == userFaction) ||
+				(transform->getTranslation().z() < targetOwnerPosition.z() && diskType == enemyFaction)) {
+				vectorToTarget = momentum;
+			} else {
+				vectorToTarget = targetOwnerPosition - transform->getTranslation();
+			}
 			diskMomentumAttractionFactor = diskOwnerMomentumAttractionFactor;
 			forward = Vec3f(0,0,userFaction == diskType ? 1 : -1);
 		}
@@ -204,14 +209,6 @@ void Disk::update() {
 				Vec3f shieldNormal;
 				enemyShield->getRotation().multVec(Vec3f(0, 1, 0), shieldNormal);
 				momentum -= shieldNormal * 2 * (momentum.dot(shieldNormal));
-			}
-		}
-		// catching disks...
-		if (state == DISK_STATE_RETURNING) {
-			Int32 sideFactor = (diskType == userFaction ? 1 : -1);
-			if (sideFactor * transform->getTranslation().z() > sideFactor * targetOwnerPosition.z()) {
-				catchDisk();
-				handler->handleDiskCatch();
 			}
 		}
 	}
@@ -271,6 +268,11 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		if (diskType != userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "enemy disk returning" << '\n';
+		} else {
+			if (state == DISK_STATE_RETURNING) {
+				catchDisk();
+				handler->handleDiskCatch();
+			}
 		}
 	} else if((transform->getTranslation().z() - nearestZOffset.z() + moveVector.z() * stepLengthPercentage) < WALL_Z_MIN) {
 		nextMomentum = Vec3f(nextMomentum.x(), nextMomentum.y(), -nextMomentum.z());
@@ -281,6 +283,11 @@ void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {
 		if (diskType == userFaction) {
 			state = DISK_STATE_RETURNING;
 			std::cout << "player disk returning" << '\n';
+		} else {
+			if (state == DISK_STATE_RETURNING) {
+				catchDisk();
+				handler->handleDiskCatch();
+			}
 		}
 	}
 

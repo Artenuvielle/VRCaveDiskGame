@@ -15,7 +15,7 @@ Vec3f AICatchState::calculateNewTargetPosition() {
 	Vec3f targetDirection = p2 - p1;
 	targetDirection.normalize();
 	targetDirection *= aiCatchArmTorsoDistance;
-	return Vec3f(p2.x(), p2.y(), me->getHeadPosition().z() + 30);//targetDirection + p1;
+	return Vec3f(p2.x(), p2.y(), osgMax(p2.z(), me->getHeadPosition().z() + 70));//targetDirection + p1;
 }
 
 AIState AICatchState::update() {
