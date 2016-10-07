@@ -23,7 +23,7 @@ AIState AIIdleState::update() {
 		if (minTimeForAttack == 0) {
 			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 1.5f) * 1000;
 		} else if(time > minTimeForAttack) {
-			//return AI_STATE_ATTACK;
+			return AI_STATE_ATTACK;
 		}
 	} else {
 		if (me->getDisk()->getState() == DISK_STATE_RETURNING && me->getDisk()->getPosition().z() < WALL_Z_MID) {

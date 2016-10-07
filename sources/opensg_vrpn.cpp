@@ -26,7 +26,6 @@
 
 #include "Common.h"
 #include "BuildScene.h"
-#include "Disk.h"
 #include "Player.h"
 #include "Animations.h"
 #include "ArtificialIntelligence.h"
@@ -48,6 +47,20 @@ AI *ai;
 #ifdef _logFrames_
 std::ofstream logFile;
 #endif
+
+void startGame() {
+	if (!gameRunning) {
+		user->getLifeCounter()->setLifeCount(lifeCounterMaxLife);
+		user->getShield()->refillCharges();
+		enemy->getLifeCounter()->setLifeCount(lifeCounterMaxLife);
+		enemy->getShield()->refillCharges();
+		ai->resetState();
+		std::cout << "Game starting, have fun :)" << '\n';
+		gameRunning = true;
+	} else {
+		std::cout << "Game allready running, wait for it to finish..." << '\n';
+	}
+}
 
 void cleanup()
 {
@@ -133,7 +146,12 @@ void VRPN_CALLBACK callback_button(void* userData, const vrpn_BUTTONCB button)
 				user->getDisk()->endDraw(wand_position);
 			}
 		}
+	} else if (!gameRunning && button.button == 1) {
+		if (button.state == 1) {
+			startGame();
+		}
 	}
+
 }
 
 void InitTracker(OSGCSM::CAVEConfig &cfg)
@@ -206,32 +224,29 @@ void keyboard(unsigned char k, int x, int y)
 		case 'i':
 			print_tracker();
 			break;
-		case 'w':
+		case 'f':
 			showFPS = !showFPS;
 			break;
-		case 's':
-			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,1,0));
-			//xangle++;
-			//std::cout << xangle << '\n';
-			//boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(xangle)) * Quaternion(Vec3f(0,0,1),osgDegree2Rad(180)));
+		case 'g':
+			startGame();
 			break;
-		case 'a':
-			//movableTransform->setTranslation(movableTransform->getTranslation() + Vec3f(0,0,1));
+		case '-':
+			user->getLifeCounter()->setLifeCount(user->getLifeCounter()->getLifeCount() - 1);
 			break;
-		case 'd':
-			//movableTransform->setTranslation(movableTransform->getTranslation() - Vec3f(0,0,1));
+		case '+':
+			user->getLifeCounter()->setLifeCount(user->getLifeCounter()->getLifeCount() + 1);
 			break;
 #ifdef _simulate_
 		case 'x':
 			initSimulation();
 			simStartTime = glutGet(GLUT_ELAPSED_TIME);
 			break;
-#endif
 		case ' ':
 			user->getDisk()->startDraw(Vec3f(-1,135,1));
 			user->getDisk()->setPosition(Vec3f(0,135,0));
 			user->getDisk()->endDraw(Vec3f(0,135,0));
 			break;
+#endif
 		default:
 			std::cout << "Key '" << k << "' ignored\n";
 	}
@@ -316,7 +331,7 @@ void setupGLUT(int *argc, char *argv[])
 		
 		const auto speed = 1.f;
 		mgr->setUserTransform(head_position, head_orientation);
-		mgr->setTranslation(mgr->getTranslation() + speed * analog_values);
+		//mgr->setTranslation(mgr->getTranslation() + speed * analog_values);
 		commitChanges();
 		mgr->redraw();
 		// the changelist should be cleared - else things could be copied multiple times

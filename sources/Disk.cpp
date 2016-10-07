@@ -10,7 +10,7 @@ OSG_USING_NAMESPACE
 
 Quaternion interpolateVector(Vec3f vec1, Vec3f vec2, Real32 factor);
 
-Disk::Disk(PlayerFaction type) {
+Disk::Disk(PlayerFaction type, DiskEventHandler* handler) : handler(handler) {
 	diskType = type;
 	NodeRecPtr model;
 	if (diskType == PLAYER_FACTION_BLUE) {
@@ -100,7 +100,7 @@ DiskState Disk::getState() {
 }
 
 bool Disk::startDraw(Vec3f position) {
-	if(state == DISK_STATE_READY) {
+	if(gameRunning && state == DISK_STATE_READY) {
 		lastPositionWhileDrawn = position;
 		momentum = Vec3f(0,0,0);
 		state = DISK_STATE_DRAWN;
@@ -119,6 +119,14 @@ bool Disk::endDraw(Vec3f position) {
 		currentAngle = targetAngle;
 		axialRotationPerMillisecond = 0;
 		std::cout << "finished drawing a disk... LET IF FLYYYYYY" << '\n';
+		return true;
+	}
+	return false;
+}
+
+bool Disk::forceReturn() {
+	if (state == DISK_STATE_FREE_FLY) {
+		state = DISK_STATE_RETURNING;
 		return true;
 	}
 	return false;
@@ -183,9 +191,9 @@ void Disk::update() {
 		moveDiskAtLeastUntilWallCollision(time - lastPositionUpdateTime);
 		// detecting enemy collisons
 		if (state == DISK_STATE_FREE_FLY) {
-			// detect player model collision
-			if (collidesWithEnemyShield()) {
+			if (enemyShield->hasCharges() && collidesWithEnemyShield()) {
 				std::cout << "Disk was defended with shield" << '\n';
+				enemyShield->reduceCharges();
 				state = DISK_STATE_RETURNING;
 				// mirror momentum on shield surface
 				Vec3f shieldNormal;
@@ -195,13 +203,15 @@ void Disk::update() {
 		}
 		// catching disks...
 		if (state == DISK_STATE_RETURNING) {
-			if (diskType == userFaction && transform->getTranslation().z() > targetOwnerPosition.z()) {
+			Int32 sideFactor = (diskType == userFaction ? 1 : -1);
+			if (sideFactor * transform->getTranslation().z() > sideFactor * targetOwnerPosition.z()) {
 				rotationAroundAxis = 0;
 				state = DISK_STATE_READY;
-			} else if(diskType != userFaction && transform->getTranslation().z() < targetOwnerPosition.z()) {
+				handler->handleDiskCatch();
+			}/* else if(diskType != userFaction && transform->getTranslation().z() < targetOwnerPosition.z()) {
 				rotationAroundAxis = 0;
 				state = DISK_STATE_READY;
-			}
+			}*/
 		}
 	}
 	lastPositionUpdateTime = time;
@@ -374,7 +384,7 @@ void Disk::createAnimationAtCollisionPoint(Vec3f position, CollisionWallNormal d
 void Disk::createWallAnimationsAtPositionFacingDirection(Vec3f position, CollisionWallNormal wall) {
 	Vec3f wallNormal = getWallNormal(position, wall);
 	// correction with wall normal for not intersecting with the box
-	createWallCollisionAnimation(position + wallNormal * 1, collisionAnimationSize, collisionAnimationSize, wallNormal, diskType);
+	createWallCollisionAnimation(position + wallNormal * (1.f - osgRand() * 0.3), collisionAnimationSize, collisionAnimationSize, wallNormal, diskType);
 }
 
 bool Disk::collidesWithEnemyShield() {

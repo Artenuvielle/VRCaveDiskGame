@@ -20,9 +20,13 @@ public:
 	void setRadius(Real32 newRadius);
 	Real32 getRadius();
 	
+	void reduceCharges();
+	void refillCharges();
+	bool hasCharges();
 	void update(Vec3f enemyDiskPosition);
 	Shield(PlayerFaction type);
 private:
+	Int32 charges;
 	ComponentTransformRecPtr transform;
 };
 

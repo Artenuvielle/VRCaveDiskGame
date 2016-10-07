@@ -23,8 +23,9 @@ Player::Player(PlayerFaction faction, bool drawModel) : modelIncluded(drawModel)
 	diskArmPosition = Vec3f(20,130,50);
 	shieldArmPosition = Vec3f(-20,130,50);
 
-	disk = new Disk(faction);
+	disk = new Disk(faction, this);
 	shield = new Shield(faction);
+	lifeCounter = new LifeCounter(faction);
 
 	if (drawModel) {
 		torsoTransform = cloneModelWithTranform(playerModelTorso);
@@ -69,6 +70,21 @@ void Player::update() {
 	disk->setTargetOwnerPosition(getTorsoPosition());
 	disk->setTargetEnemyPosition(enemy->getTorsoPosition());
 	disk->update();
+
+	if (enemy->getDisk()->getState() == DISK_STATE_FREE_FLY && (Vec3f(enemy->getDisk()->getPosition().x(), 0, enemy->getDisk()->getPosition().z()) - Vec3f(getTorsoPosition().x(), 0, getTorsoPosition().z())).squareLength() < (diskRadius + PLAYER_HEAD_SIZE) * (diskRadius + PLAYER_HEAD_SIZE)) {
+		if (enemy->getDisk()->getPosition().y() < getHeadPosition().y()) {
+			std::cout << "A player got hit by a disk" << '\n';
+			enemy->getDisk()->forceReturn();
+			lifeCounter->setLifeCount(lifeCounter->getLifeCount() - 1);
+			if (lifeCounter->getLifeCount() == 0) {
+				// game over
+				gameRunning = false;
+				std::cout << "Game over" << '\n';
+			}
+		}
+	}
+
+	lifeCounter->update();
 };
 
 void Player::recalculatePositions() {
@@ -159,4 +175,12 @@ Disk* Player::getDisk() {
 
 Shield* Player::getShield() {
 	return shield;
+}
+
+LifeCounter* Player::getLifeCounter() {
+	return lifeCounter;
+}
+
+void Player::handleDiskCatch() {
+
 }

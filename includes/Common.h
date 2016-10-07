@@ -40,6 +40,10 @@ const Real32 PLAYER_HEAD_SIZE = 15;
 const Real32 PLAYER_TORSO_HEAD_OFFSET = 10;
 const Real32 PLAYER_GEOMETRY_SCALE = 2;
 
+const Int32 lifeCounterMaxLife = 3;
+const Real32 lifeCounterMaxTransparency = 0.3;
+const Real32 lifeCounterTransparencyChangeTime = 0.2; // s
+
 const Real32 diskRadius = 15; // cm
 const Real32 diskHeight = 3; // cm
 const Real32 diskSpeed = 0.4f; // cm/ms
@@ -50,6 +54,7 @@ const Real32 shieldMinimumRadius = 2.5; // cm
 const Real32 shieldMaximumRadius = 20; // cm
 const Real32 shieldGrowStartDistance = 400; // cm
 const Real32 shieldGrowEndDistance = 250; // cm
+const Int32 shieldMaximumCharges = 3;
 
 const Real32 diskEnemyMomentumAttractionFactor = 1.5f; // deg/sec
 const Real32 diskOwnerMomentumAttractionFactor = 1.7f; // deg/sec
@@ -67,5 +72,7 @@ const Real32 aiMinTimeUntilAttack = 2.f; // s
 extern NodeRecPtr root;
 extern NodeRecPtr boundingBoxModel;
 extern ComponentTransformRecPtr boundingBoxModelCT;
+
+extern bool gameRunning;
 
 #endif

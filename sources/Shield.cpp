@@ -39,6 +39,8 @@ Shield::Shield(PlayerFaction faction) {
 	root->addChild(transformNode);
 
 	setRadius(shieldMaximumRadius);
+
+	refillCharges();
 	
 	commitChanges();
 }
@@ -74,6 +76,9 @@ Quaternion Shield::getRotation() {
 }
 
 void Shield::setRadius(Real32 newRadius) {
+	if (charges == 0 && newRadius >= getRadius()) {
+		return;
+	}
 	Real32 clampedRadius = osgMax(shieldMinimumRadius, osgMin(shieldMaximumRadius, newRadius));
 	Real32 newScale = clampedRadius / shieldMaximumRadius;
 	transform->setScale(Vec3f(newScale, 1, newScale));
@@ -81,4 +86,18 @@ void Shield::setRadius(Real32 newRadius) {
 
 Real32 Shield::getRadius() {
 	return transform->getScale().x() * shieldMaximumRadius;
+}
+
+void Shield::reduceCharges() {
+	if (charges > 0) {
+		charges--;
+	}
+}
+
+void Shield::refillCharges() {
+	charges = shieldMaximumCharges;
+}
+
+bool Shield::hasCharges() {
+	return charges > 0;
 }

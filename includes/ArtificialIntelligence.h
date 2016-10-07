@@ -48,10 +48,12 @@ protected:
 
 class AI {
 public:
+	void resetState();
 	void update();
 	AI(Player* aiTarget);
 	~AI();
 private:
+	void setState(AIState newState);
 	Player* me;
 	Real32 lastUpdateTime;
 	AIState state;

@@ -10,10 +10,11 @@
 #include "Common.h"
 #include "Disk.h"
 #include "Shield.h"
+#include "LifeCounter.h"
 
 OSG_USING_NAMESPACE
 
-class Player {
+class Player : public DiskEventHandler {
 public:
 	Player* getEnemy();
 	void setEnemy(Player* newEnemy);
@@ -32,6 +33,8 @@ public:
 	void setShieldArmPosition(Vec3f newPosition);
 	Disk* getDisk();
 	Shield* getShield();
+	LifeCounter* getLifeCounter();
+	void handleDiskCatch();
 	Player(PlayerFaction faction, bool drawModel);
 	~Player();
 	void update();
@@ -41,6 +44,7 @@ private:
 	Player* enemy;
 	Disk* disk;
 	Shield* shield;
+	LifeCounter* lifeCounter;
 	ComponentTransformRecPtr torsoTransform;
 	ComponentTransformRecPtr headTransform;
 	ComponentTransformRecPtr diskArmTransform;

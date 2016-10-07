@@ -233,44 +233,7 @@ NodeTransitPtr buildScene()
 
 
 
-	GeometryRecPtr rect = makePlaneGeo(50, 80, 1, 1);
-	ComponentTransformRecPtr rectTrans = ComponentTransform::create();
-	rectTrans->setTranslation(Vec3f(0,1,-190));
-	rectTrans->setRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)));
-	NodeRecPtr rectTransNode = makeNodeFor(rectTrans);
-	NodeRecPtr rectGroup = makeNodeFor(Group::create());
-	rectTransNode->addChild(rectGroup);
-	rectGroup->addChild(makeNodeFor(rect));
-	root->addChild(rectTransNode);
-	SimpleMaterialRecPtr points = SimpleMaterial::create();
-	points->setAmbient(colorBlue);
-	points->setDiffuse(colorBlue);
-	points->setTransparency(0.2);
-	rect->setMaterial(points);
-
-	Real32 rectWidth = 50;
-	Real32 rectHeight = 80;
-	Real32 strokeWidth = 1.5f;
-	GeoBuilder rectBuilder;
-	rectBuilder.begin(GL_QUAD_STRIP);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2, rectHeight / 2, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2 - strokeWidth, rectHeight / 2 + strokeWidth, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(rectWidth / 2, rectHeight / 2, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(rectWidth / 2 + strokeWidth, rectHeight / 2 + strokeWidth, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(rectWidth / 2, -rectHeight / 2, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(rectWidth / 2 + strokeWidth, -rectHeight / 2 - strokeWidth, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2, -rectHeight / 2, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2 - strokeWidth, -rectHeight / 2 - strokeWidth, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2, rectHeight / 2, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.fullVertex(Pnt3f(-rectWidth / 2 - strokeWidth, rectHeight / 2 + strokeWidth, 0), Vec3f(0,0,-1), colorBlue);
-	rectBuilder.end();
-	GeometryRecPtr strokeGeo = rectBuilder.getGeometry();
-	rectGroup->addChild(makeNodeFor(strokeGeo));
-	SimpleMaterialRecPtr points2 = SimpleMaterial::create();
-	points2->setAmbient(colorBlue);
-	points2->setDiffuse(colorBlue);
-	strokeGeo->setMaterial(points2);
-
+	
 	GeoBuilder builder;
 	builder.begin(GL_QUAD_STRIP);
 	Real32 r = 10;

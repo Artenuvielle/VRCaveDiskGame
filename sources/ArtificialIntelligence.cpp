@@ -61,6 +61,10 @@ Quaternion capRotation(Quaternion start, Quaternion end, Real32 maximalRotation)
 	return end;
 }
 
+void AI::resetState() {
+	setState(state);
+}
+
 void AI::update() {
 	AIState newState = stateHandler->update();
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
@@ -71,28 +75,33 @@ void AI::update() {
 	me->setDiskArmRotation(capRotation(me->getDiskArmRotation(), stateHandler->getDiskArmRotation(), aiArmMaxRotation * elapsedSeconds));
 	me->setShieldArmPosition(capMovement(me->getShieldArmPosition(), stateHandler->getShieldArmPosition(), aiArmMaxSpeed * elapsedSeconds));
 	me->setShieldArmRotation(capRotation(me->getShieldArmRotation(), stateHandler->getShieldArmRotation(), aiArmMaxRotation * elapsedSeconds));
+	if (!gameRunning) newState = AI_STATE_IDLE;
 	if (newState != state) {
-		delete stateHandler;
-		switch (newState)
-		{
-		case AI_STATE_ATTACK:
-			stateHandler = new AIAttackState(me);
-			break;
-		case AI_STATE_DEFEND:
-			stateHandler = new AIDefendState(me);
-			break;
-		case AI_STATE_CATCH:
-			stateHandler = new AICatchState(me);
-			break;
-		case AI_STATE_IDLE:
-		default:
-			stateHandler = new AIIdleState(me);
-			break;
-		}
-		state = newState;
-		std::cout << "AI changed state to " << AIStateNames[state] << '\n';
+		setState(newState);
 	}
 	lastUpdateTime = time;
+}
+
+void AI::setState(AIState newState) {
+	delete stateHandler;
+	switch (newState)
+	{
+	case AI_STATE_ATTACK:
+		stateHandler = new AIAttackState(me);
+		break;
+	case AI_STATE_DEFEND:
+		stateHandler = new AIDefendState(me);
+		break;
+	case AI_STATE_CATCH:
+		stateHandler = new AICatchState(me);
+		break;
+	case AI_STATE_IDLE:
+	default:
+		stateHandler = new AIIdleState(me);
+		break;
+	}
+	state = newState;
+	std::cout << "AI changed state to " << AIStateNames[state] << '\n';
 }
 
 AI::~AI() {
