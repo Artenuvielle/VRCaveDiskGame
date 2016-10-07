@@ -46,7 +46,7 @@ AIState AIAttackState::update() {
 		if (splinePercent >= 1) {
 			nextState = AI_STATE_IDLE;
 			diskArmPosition = endDrawingPosition;
-			me->getDisk()->endDraw(diskArmPosition);
+			me->getDisk()->endDraw(me->getDiskArmPosition());
 		} else {
 			diskArmPosition = splineInterpolation(splinePercent, startDrawingPosition, endDrawingPosition, startDrawingDirection, endDrawingDirection);
 		}
@@ -55,15 +55,16 @@ AIState AIAttackState::update() {
 			startTime = time;
 			isDrawing = true;
 			diskArmPosition = startDrawingPosition;
-			me->getDisk()->startDraw(diskArmPosition);
+			me->getDisk()->startDraw(me->getDiskArmPosition());
 		} else {
 			diskArmPosition = splineInterpolation(splinePercent, startPosition, startDrawingPosition, startDirection, startDrawingDirection);
 		}
 	}
 	Vec3f rotatedShoulderOffset(25,0,0);
-	headRotation.multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+	me->getHeadRotation().multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+	
 	Vec3f shoulderPosition = me->getTorsoPosition() - rotatedShoulderOffset;
-	Vec3f armDirection = diskArmPosition - me->getTorsoPosition();
+	Vec3f armDirection = me->getDiskArmPosition() - me->getTorsoPosition();
 	armDirection.normalize();
 	//std::cout << armDirection << "\n";
 	if (isDrawing) {
@@ -73,8 +74,8 @@ AIState AIAttackState::update() {
 	}
 
 	Vec3f ellbowDirection;
-	diskArmRotation.multVec(Vec3f(0,0,-30), ellbowDirection);
-	Vec3f ellbowPosition = diskArmPosition + ellbowDirection;
+	me->getDiskArmRotation().multVec(Vec3f(0,0,-30), ellbowDirection);
+	Vec3f ellbowPosition = me->getDiskArmPosition() + ellbowDirection;
 	Vec3f shoulderDirection = me->getTorsoPosition() - ellbowPosition;
 	shoulderDirection.normalize();
 	shoulderDirection *= 30;
@@ -84,7 +85,9 @@ AIState AIAttackState::update() {
 	headPosition = me->getHeadPosition() + shoulderOffset;
 	Vec3f armDistance = me->getDiskArmPosition() - me->getShieldArmPosition();
 	headRotation = Quaternion(Vec3f(-1, 0, 0), Vec3f(armDistance.x(), 0, armDistance.z()));
-	shieldArmPosition = headPosition + Vec3f(0,-60,0) + rotatedShoulderOffset;
+
+	shieldArmPosition = me->getHeadPosition() + Vec3f(0,-60,0) + rotatedShoulderOffset;
 	shieldArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90));
+
 	return nextState;
 }

@@ -16,10 +16,9 @@ public:
 	AIState update();
 	AIDefendState(Player* me);
 private:
-	Vec3f calculateNewTargetPosition();
-	Vec3f startShieldArmPosition;
-	Vec3f targetShieldArmPosition;
 	Real32 startTime;
+	Vec3f calculateNewTargetPosition();
+	Vec3f targetShieldArmPosition;
 };
 
 #endif

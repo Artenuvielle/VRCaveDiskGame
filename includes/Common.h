@@ -40,7 +40,7 @@ const Real32 PLAYER_HEAD_SIZE = 15;
 const Real32 PLAYER_TORSO_HEAD_OFFSET = 10;
 const Real32 PLAYER_GEOMETRY_SCALE = 2;
 
-const Int32 lifeCounterMaxLife = 3;
+const Int32 lifeCounterMaxLife = 4;
 const Real32 lifeCounterMaxTransparency = 0.3;
 const Real32 lifeCounterTransparencyChangeTime = 0.2; // s
 
@@ -63,11 +63,13 @@ const Real32 collisionAnimationSize = 150; // in cm
 const Real32 scoreAnimationSize = 1200; // in cm
 
 const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
-const Real32 aiHeadMaxSpeed = 17.f; // cm/s
+const Real32 aiHeadMaxSpeed = 25.f; // cm/s
 const Real32 aiHeadMaxRotation = 0.8f; // rad/s
-const Real32 aiArmMaxSpeed = 40.f; // cm/s
+const Real32 aiArmMaxSpeed = 50.f; // cm/s
 const Real32 aiArmMaxRotation = 3.5f; // rad/s
 const Real32 aiMinTimeUntilAttack = 2.f; // s
+const Real32 aiDefendArmTorsoDistance = 35.f; // cm
+const Real32 aiCatchArmTorsoDistance = 50.f; // cm
 
 extern NodeRecPtr root;
 

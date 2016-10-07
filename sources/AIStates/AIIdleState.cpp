@@ -15,19 +15,22 @@ AIState AIIdleState::update() {
 	headRotation = Quaternion(Vec3f(0, 0, 1), me->getEnemy()->getHeadPosition() - me->getHeadPosition());
 	Vec3f rotatedShoulderOffset(25,0,0);
 	me->getHeadRotation().multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+	
 	diskArmPosition = me->getHeadPosition() + Vec3f(0,-60,0) - rotatedShoulderOffset;
 	diskArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(90));
+
 	shieldArmPosition = me->getHeadPosition() + Vec3f(0,-60,0) + rotatedShoulderOffset;
 	shieldArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(-90));
+	
 	if (me->getDisk()->getState() == DISK_STATE_READY) {
 		if (minTimeForAttack == 0) {
-			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 5.f) * 1000;
+			minTimeForAttack = time + (aiMinTimeUntilAttack + osgRand() * 3.f) * 1000;
 		} else if(time > minTimeForAttack) {
 			return AI_STATE_ATTACK;
 		}
 	} else {
-		if (me->getDisk()->getState() == DISK_STATE_RETURNING && me->getDisk()->getPosition().z() < WALL_Z_MID) {
-			//return AI_STATE_CATCH;
+		if (me->getDisk()->getState() == DISK_STATE_RETURNING && me->getDisk()->getPosition().z() < WALL_Z_MID + 150) {
+			return AI_STATE_CATCH;
 		}
 	}
 	if (me->getEnemy()->getDisk()->getState() == DISK_STATE_FREE_FLY && me->getEnemy()->getDisk()->getPosition().z() < WALL_Z_MID) {

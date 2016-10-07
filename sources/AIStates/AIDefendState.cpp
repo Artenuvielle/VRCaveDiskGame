@@ -3,46 +3,56 @@
 #include "Common.h"
 
 OSG_USING_NAMESPACE
-
-const Real32 aiDefendArmTorsoDistance = 35.f;
 	
 AIDefendState::AIDefendState(Player* me) : AIStateHandler(me) {
-	startShieldArmPosition = me->getShieldArmPosition();
-	startTime = glutGet(GLUT_ELAPSED_TIME);
 	calculateNewTargetPosition();
+	startTime = glutGet(GLUT_ELAPSED_TIME);
 }
 
 Vec3f AIDefendState::calculateNewTargetPosition() {
-	Vec3f p1 = me->getHeadPosition();//(me->getTorsoPosition() + me->getHeadPosition()) * 0.5f;
+	Vec3f p1 = me->getHeadPosition();
 	Vec3f p2 = me->getEnemy()->getDisk()->getPosition();
-	Vec3f targetDirection = p2 - p1;//Vec3f(p2.x(), 0, p2.z()) - Vec3f(p1.x(), 0, p1.z());
+	Vec3f targetDirection = p2 - p1;
 	targetDirection.normalize();
 	targetDirection *= aiDefendArmTorsoDistance;
-	return /*me->getTorsoPosition() +*/ targetDirection + p1;//Vec3f(0, (p1.y() + p2.y()) / 2, 0);
+	return targetDirection + p1;
 }
 
 AIState AIDefendState::update() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	
 	Vec3f rotatedShoulderOffset(25,0,0);
-	headRotation.multVec(rotatedShoulderOffset, rotatedShoulderOffset);
+	me->getHeadRotation().multVec(rotatedShoulderOffset, rotatedShoulderOffset);
 	
-	Real32 interpolationPercentage = time - startTime / 200;
-	if (interpolationPercentage > 1) {
+	if (time - startTime > 200) {
 		targetShieldArmPosition = calculateNewTargetPosition();
-		startTime = glutGet(GLUT_ELAPSED_TIME);
-		interpolationPercentage -= 1.f;
+		startTime = time;
 	}
-	shieldArmPosition = targetShieldArmPosition;//splineInterpolation(interpolationPercentage, startShieldArmPosition, targetShieldArmPosition, Vec3f(0,0,1), Vec3f(-1,0,0));
+	shieldArmPosition = targetShieldArmPosition;
 	Vec3f shieldArmDirection = me->getShieldArmPosition() - me->getTorsoPosition();
 	shieldArmRotation = Quaternion(Vec3f(0,1,0), Vec3f(shieldArmDirection.x(), 0, shieldArmDirection.z()));// * Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90));
 
-	headPosition = aiDefaultHeadPosition + Vec3f(osgCos(time / 1000.f), osgSin(time / 1000.f) * osgCos(time / 1000.f)) * 10;
-	headRotation = Quaternion(Vec3f(0,0,1), shieldArmDirection);
-	headRotation.scaleAngle(0.5);
+	Vec3f shoulderPosition = me->getTorsoPosition() + rotatedShoulderOffset;
+	Vec3f armDirection = me->getShieldArmPosition() - me->getTorsoPosition();
+	armDirection.normalize();
+
+	Vec3f ellbowDirection;
+	me->getShieldArmRotation().multVec(Vec3f(0,0,-30), ellbowDirection);
+	Vec3f ellbowPosition = me->getShieldArmPosition() + ellbowDirection;
+	Vec3f shoulderDirection = me->getTorsoPosition() - ellbowPosition;
+	shoulderDirection.normalize();
+	shoulderDirection *= 30;
+	Vec3f nextShoulderPosition = ellbowPosition + shoulderDirection;
+	Vec3f shoulderOffset = nextShoulderPosition - shoulderPosition;
+	
+	headPosition = me->getHeadPosition() + shoulderOffset;
+	headRotation = Quaternion(Vec3f(0, 0, 1), me->getEnemy()->getDisk()->getPosition() - me->getHeadPosition());
+		
 	diskArmPosition = me->getHeadPosition() + Vec3f(0,-60,0) - rotatedShoulderOffset;
 	diskArmRotation = Quaternion(Vec3f(1,0,0), osgDegree2Rad(90)) * Quaternion(Vec3f(0,0,1), osgDegree2Rad(90));
-	if (me->getEnemy()->getDisk()->getState() == DISK_STATE_FREE_FLY) {
+	if (me->getDisk()->getState() == DISK_STATE_RETURNING && me->getDisk()->getPosition().z() < WALL_Z_MID) {
+		return AI_STATE_CATCH;
+	} else if (me->getEnemy()->getDisk()->getState() == DISK_STATE_FREE_FLY) {
 		return AI_STATE_DEFEND;
 	} else {
 		return AI_STATE_IDLE;
