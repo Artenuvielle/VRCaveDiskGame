@@ -32,8 +32,8 @@ AnimationData createWallCollisionAnimation(Vec3f position, Real32 xsixe, Real32 
 	chunkMaterial->addChunk(blendChunk);
 	blendChunk->setSrcFactor(GL_SRC_ALPHA);
 	blendChunk->setDestFactor(GL_ONE_MINUS_SRC_ALPHA);
-	blendChunk->setAlphaFunc(GL_NONE);
-	blendChunk->setAlphaValue(0);   
+	//blendChunk->setAlphaFunc(GL_NONE);
+	//blendChunk->setAlphaValue(0);
 	
 	newAnimation.textureToAnimate = TextureObjChunk::create();
 	newAnimation.imageSet = (faction == PLAYER_FACTION_BLUE ? collisionImageBlue : collisionImageOrange);
