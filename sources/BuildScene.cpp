@@ -191,8 +191,8 @@ NodeTransitPtr buildScene()
 	playerModelArmBlue = loadModelFromCache("models/robot_arm_blue", ".OBJ");
 	playerModelArmOrange = loadModelFromCache("models/robot_arm_orange", ".OBJ");
 
-	collisionImageBlue = loadImageFromSequence("models/wall_collision_blue/wall_collision_blue_000", ".png", 25, 25);
-	collisionImageOrange = loadImageFromSequence("models/wall_collision_orange/wall_collision_orange_000", ".png", 25, 25);
+	collisionImageBlue = loadImageFromSequence("models/wall_collision_blue/wall_collision_blue_", ".png", 25, 25);
+	collisionImageOrange = loadImageFromSequence("models/wall_collision_orange/wall_collision_orange_", ".png", 25, 25);
 
 	shieldTorusMaterialBlue = SimpleMaterial::create();
 	shieldTorusMaterialBlue->setDiffuse(colorBlue);
