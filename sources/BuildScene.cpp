@@ -36,6 +36,9 @@ SimpleMaterialRecPtr shieldTorusMaterialOrange;
 SimpleMaterialRecPtr shieldRingMaterialBlue;
 SimpleMaterialRecPtr shieldRingMaterialOrange;
 
+SimpleTexturedMaterialRecPtr lightTrailMaterialBlue;
+SimpleTexturedMaterialRecPtr lightTrailMaterialOrange;
+
 DirectionalLightRecPtr headLight;
 
 ComponentTransformRecPtr testTrans;
@@ -209,74 +212,15 @@ NodeTransitPtr buildScene()
 	shieldRingMaterialOrange->setTransparency(0.5);
 	shieldRingMaterialOrange->setLit(false);
 
+	lightTrailMaterialBlue = SimpleTexturedMaterial::create();
+	ImageRecPtr lightTrailImageBlue = Image::create();
+	lightTrailImageBlue->read("models/light_trail_blue.PNG");
+	lightTrailMaterialBlue->setImage(lightTrailImageBlue);
 
+	lightTrailMaterialOrange = SimpleTexturedMaterial::create();
+	ImageRecPtr lightTrailImageOrange = Image::create();
+	lightTrailImageOrange->read("models/light_trail_orange.PNG");
+	lightTrailMaterialOrange->setImage(lightTrailImageOrange);
 
-
-	
-	GeoBuilder builder;
-	builder.begin(GL_QUAD_STRIP);
-	Real32 r = 10;
-	int n = 4;
-	Real32 b = osgDegree2Rad(360 / n * -1);
-	for (int i = 0; i <= n; i++) {
-		Real32 a = osgDegree2Rad(360 / n * i);
-		builder.fullVertex(Pnt3f(r * osgSin(a), 10, r * -osgCos(a)), Vec3f(osgSin(a), 0, -osgCos(a)), Color3f(1,1,1));
-		builder.fullVertex(Pnt3f(r * osgSin(a), -10, r * -osgCos(a)), Vec3f(osgSin(a), 0, -osgCos(a)), Color3f(1,1,1));
-		//builder.fullVertex(Pnt3f(r * osgCos(a), 40, r * osgSin(a)), Vec3f(osgCos(a), 0, osgSin(a)), Color3f(1,0,0));
-		//std::cout << Pnt3f(r * osgCos(a), 40, r * osgSin(a)) << "   " << Vec3f(osgCos(a), 0, osgSin(a)) << '\n';
-		b = a;
-	}
-	/*builder.fullVertex(Pnt3f(10, 10, 10), Vec3f(0, 1, 0), Color3f(0,0,1));
-	builder.fullVertex(Pnt3f(-10, 10, 10), Vec3f(0, 1, 0), Color3f(1,0,1));
-	builder.fullVertex(Pnt3f(10, 0, 10), Vec3f(0, 0, 1), Color3f(0,1,1));
-	builder.fullVertex(Pnt3f(-10, 0, 10), Vec3f(0, 0, 1), Color3f(0,1,1));
-	builder.fullVertex(Pnt3f(10, -10, 10), Vec3f(0, -1, 0), Color3f(0,1,1));
-	builder.fullVertex(Pnt3f(-10, -10, 10), Vec3f(0, -1, 0), Color3f(0,1,1));
-	*/builder.end();
-	NodeRecPtr testModel = makeCoordAxis(20,2.0f,true);//makeNodeFor(builder.getGeometry());//makeCylinder(80,10,20,true,true,true);//makeBox(10,10,30,1,1,1);
-	testTrans = ComponentTransform::create();
-	testTrans->setTranslation(Vec3f(0,135,15));
-	//testTrans->setRotation(Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)) * Quaternion(Vec3f(1,0,0), osgDegree2Rad(-90)));
-	NodeRecPtr testTransNode = makeNodeFor(testTrans);
-	testTransNode->addChild(testModel);
-	//root->addChild(testTransNode);
-	
-	ShaderProgramRefPtr vpPPL = ShaderProgram::createVertexShader();
-	ShaderProgramRefPtr fpPPL = ShaderProgram::createFragmentShader();
-	ShaderProgramRefPtr gpPPL = ShaderProgram::createGeometryShader();
-	vpPPL->readProgram("shaders/pixellight.vp.glsl");
-	fpPPL->readProgram("shaders/pixellight.fp.glsl");
-	gpPPL->readProgram("shaders/pixellight.gp.glsl");
-	
-	ShaderProgramChunkRefPtr shaderChunk = ShaderProgramChunk::create();
-	shaderChunk->addShader(vpPPL);
-	shaderChunk->addShader(fpPPL);
-	//shaderChunk->addShader(gpPPL);
-	
-	//ShaderProgramVariableChunkRecPtr varChunk = ShaderProgramVariableChunk::create();
-	
-	ChunkMaterialRecPtr chunkMat = ChunkMaterial::create();
-	MaterialChunkRecPtr matChunk = MaterialChunk::create();
-	matChunk->setDiffuse(Color4f(0.8,0.2,0.2,1));
-	matChunk->setAmbient(Color4f(0.8,0.2,0.2,1));
-	chunkMat->addChunk(matChunk);
-	chunkMat->addChunk(shaderChunk);
-	//mat->addChunk(varChunk);
-
-	PolygonChunkRecPtr polyChunk = PolygonChunk::create();
-	polyChunk->setFrontMode(GL_LINE);
-	polyChunk->setBackMode(GL_LINE);
-	ChunkMaterialRecPtr chunk2Mat = ChunkMaterial::create();
-	chunk2Mat->addChunk(polyChunk);
-
-	MultiPassMaterialRecPtr passMat = MultiPassMaterial::create();
-	passMat->addMaterial(chunkMat);
-	passMat->addMaterial(chunk2Mat);
-	
-
-	//GeometryRecPtr testGeo = dynamic_cast<Geometry*>(testModel->getCore());
-	//testGeo->setMaterial(passMat);
-
-	// you will see a donut at the floor, slightly skewed, depending on head_position
 	return NodeTransitPtr(root);
 }

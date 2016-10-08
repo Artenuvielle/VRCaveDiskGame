@@ -9,6 +9,7 @@
 
 #include "Common.h"
 #include "Shield.h"
+#include "LightTrail.h"
 
 OSG_USING_NAMESPACE
 
@@ -44,6 +45,7 @@ public:
 	void update();
 	Disk(PlayerFaction type, DiskEventHandler* handler);
 private:
+	void updateLightTrails();
 	void moveDiskAtLeastUntilWallCollision(Real32 deltaTime);
 	Vec3f calculateMovement(Real32 deltaTime);
 	bool collidesWithEnemyShield();
@@ -64,6 +66,7 @@ private:
 	ComponentTransformRecPtr transform;
 	Real32 lastPositionUpdateTime;
 	Real32 lastRotationUpdateTime;
+	LightTrail *lightTrailLeft, *lightTrailRight;
 	Shield* enemyShield;
 	DiskState state;
 };

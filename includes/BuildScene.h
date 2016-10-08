@@ -10,6 +10,7 @@
 #include <OpenSG/OSGImage.h>
 #include <OSGCSM/OSGCAVESceneManager.h>
 #include <OpenSG/OSGDirectionalLight.h>
+#include <OpenSG/OSGSimpleTexturedMaterial.h>
 
 OSG_USING_NAMESPACE
 
@@ -29,6 +30,9 @@ extern SimpleMaterialRecPtr shieldTorusMaterialBlue;
 extern SimpleMaterialRecPtr shieldTorusMaterialOrange;
 extern SimpleMaterialRecPtr shieldRingMaterialBlue;
 extern SimpleMaterialRecPtr shieldRingMaterialOrange;
+
+extern SimpleTexturedMaterialRecPtr lightTrailMaterialBlue;
+extern SimpleTexturedMaterialRecPtr lightTrailMaterialOrange;
 
 extern DirectionalLightRecPtr headLight;
 

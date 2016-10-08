@@ -36,6 +36,8 @@ Disk::Disk(PlayerFaction type, DiskEventHandler* handler) : handler(handler) {
 
 	commitChanges();
 
+	lightTrailLeft = nullptr;
+	lightTrailRight = nullptr;
 	rotationAroundAxis = 0;
 }
 
@@ -119,6 +121,14 @@ bool Disk::endDraw(Vec3f position) {
 		currentAngle = targetAngle;
 		axialRotationPerMillisecond = 0;
 		std::cout << "finished drawing a disk... LET IF FLYYYYYY" << '\n';
+		Vec3f lightTrailDirection = momentum.cross(currentAxis);
+		lightTrailDirection *= (diskRadius - 2.f) / lightTrailDirection.length();
+		if (lightTrailLeft == nullptr) {
+			lightTrailLeft = LightTrail::create(diskType, getPosition() + lightTrailDirection);
+		}
+		if (lightTrailRight == nullptr) {
+			lightTrailRight = LightTrail::create(diskType, getPosition() - lightTrailDirection);
+		}
 		return true;
 	}
 	return false;
@@ -134,6 +144,15 @@ bool Disk::forceReturn() {
 
 void Disk::catchDisk() {
 	rotationAroundAxis = 0;
+	if (lightTrailLeft != nullptr) {
+		LightTrail::finish(lightTrailLeft);
+		lightTrailLeft = nullptr;
+	}
+	if (lightTrailRight != nullptr) {
+		LightTrail::finish(lightTrailRight);
+		lightTrailRight = nullptr;
+	}
+	std::cout << "deleted trails\n";
 	state = DISK_STATE_READY;
 }
 
@@ -211,8 +230,20 @@ void Disk::update() {
 				momentum -= shieldNormal * 2 * (momentum.dot(shieldNormal));
 			}
 		}
+		updateLightTrails();
 	}
 	lastPositionUpdateTime = time;
+}
+
+void Disk::updateLightTrails() {
+	Vec3f lightTrailDirection = momentum.cross(currentAxis);
+	lightTrailDirection *= (diskRadius - 2.f) / lightTrailDirection.length();
+	if (lightTrailLeft != nullptr) {
+		lightTrailLeft->addPoint(getPosition() + lightTrailDirection);
+	}
+	if (lightTrailRight != nullptr) {
+		lightTrailRight->addPoint(getPosition() - lightTrailDirection);
+	}
 }
 
 void Disk::moveDiskAtLeastUntilWallCollision(Real32 deltaTime) {

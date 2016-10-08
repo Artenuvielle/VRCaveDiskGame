@@ -30,6 +30,8 @@
 #include "Animations.h"
 #include "ArtificialIntelligence.h"
 
+#include "LightTrail.h"
+
 #ifdef _simulate_
 #include "Simulation.h"
 #endif
@@ -44,6 +46,7 @@ vrpn_Analog_Remote* analog = nullptr;
 
 Player *user, *enemy;
 AI *ai;
+
 #ifdef _logFrames_
 std::ofstream logFile;
 #endif
@@ -67,6 +70,7 @@ void cleanup()
 #ifdef _logFrames_
 	logFile.close();
 #endif
+	LightTrail::deleteAllTrailsInstantly();
 	delete ai;
 	delete user, enemy;
 	delete mgr;
@@ -84,7 +88,7 @@ T scale_tracker2cm(const T& value)
 	return value * scale;
 }
 
-auto head_orientation = Quaternion(Vec3f(0.f, 1.f, 0.f), 3.141f);
+auto head_orientation = Quaternion(-0.2f, 0.f, 0.f, 1.f);//Quaternion(Vec3f(1.f, 0.f, 0.f), Pi);
 auto head_position = Vec3f(0.f, 170.f, 130.f);	// a 1.7m Person 2m in front of the scene
 
 void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tracker)
@@ -230,12 +234,6 @@ void keyboard(unsigned char k, int x, int y)
 		case 'g':
 			startGame();
 			break;
-		case '-':
-			user->getLifeCounter()->setLifeCount(user->getLifeCounter()->getLifeCount() - 1);
-			break;
-		case '+':
-			user->getLifeCounter()->setLifeCount(user->getLifeCounter()->getLifeCount() + 1);
-			break;
 #ifdef _simulate_
 		case 'x':
 			initSimulation();
@@ -276,6 +274,7 @@ void setupGLUT(int *argc, char *argv[])
 		Vec3f forward(0,0,1);
 		head_orientation.multVec(forward, forward);
 		headLight->setDirection(forward);
+		LightTrail::updateTrails(head_position);
 
 		if (showFPS) {
 			if (time - lastFPSUpdate > 1000) {

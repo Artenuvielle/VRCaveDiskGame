@@ -59,9 +59,6 @@ const Real32 shieldGrowStartDistance = 400; // cm
 const Real32 shieldGrowEndDistance = 250; // cm
 const Int32 shieldMaximumCharges = 3;
 
-const Real32 collisionAnimationSize = 150; // in cm
-const Real32 scoreAnimationSize = 1200; // in cm
-
 const Vec3f aiDefaultHeadPosition = Vec3f(0,165,-810);
 const Real32 aiHeadMaxSpeed = 25.f; // cm/s
 const Real32 aiHeadMaxRotation = 0.8f; // rad/s
@@ -70,6 +67,15 @@ const Real32 aiArmMaxRotation = 3.5f; // rad/s
 const Real32 aiMinTimeUntilAttack = 2.f; // s
 const Real32 aiDefendArmTorsoDistance = 35.f; // cm
 const Real32 aiCatchArmTorsoDistance = 50.f; // cm
+
+const Real32 collisionAnimationSize = 150; // in cm
+const Real32 scoreAnimationSize = 1200; // in cm
+
+const Int32 lightTrailMaxPoints = 100;
+const Real32 lightTrailPointsPerSecond = 50.f;
+const Real32 lightTrailSizeGrow = 100.f;
+const Real32 lightTrailMaxSize = 1.5f;
+const Real32 lightTrailInputPointMinDistance = 20.f;
 
 extern NodeRecPtr root;
 
