@@ -171,7 +171,11 @@ NodeTransitPtr buildScene()
 	
 	ComponentTransformRecPtr boundingBoxModelCT = ComponentTransform::create();
 	boundingBoxModelCT->setTranslation(Vec3f(0,135,-405));
-	boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(-90)));
+	if (userFaction == PLAYER_FACTION_BLUE) {
+		boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(-90)));
+	} else {
+		boundingBoxModelCT->setRotation(Quaternion(Vec3f(1,0,0),osgDegree2Rad(-90)) * Quaternion(Vec3f(0,0,1), Pi));
+	}
 	boundingBoxModelCT->setScale(Vec3f(270.f,270.f,270.f));
 
 	NodeRecPtr boundingBoxModelTrans = makeNodeFor(boundingBoxModelCT);
