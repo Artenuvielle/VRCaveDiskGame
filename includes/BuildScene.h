@@ -20,6 +20,9 @@ extern NodeRecPtr diskModelOrange;
 extern ImageRecPtr collisionImageBlue;
 extern ImageRecPtr collisionImageOrange;
 
+extern ImageRecPtr loseImage;
+extern ImageRecPtr winImage;
+
 extern NodeRecPtr playerModelTorso;
 extern NodeRecPtr playerModelHeadBlue;
 extern NodeRecPtr playerModelHeadOrange;

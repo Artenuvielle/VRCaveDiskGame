@@ -53,6 +53,10 @@ std::ofstream logFile;
 
 void startGame() {
 	if (!gameRunning) {
+		if (gameResultAnimationId >= 0) {
+			endAnimation(gameResultAnimationId);
+			gameResultAnimationId = -1;
+		}
 		user->getLifeCounter()->setLifeCount(lifeCounterMaxLife);
 		user->getShield()->refillCharges();
 		enemy->getLifeCounter()->setLifeCount(lifeCounterMaxLife);

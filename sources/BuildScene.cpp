@@ -25,6 +25,9 @@ NodeRecPtr diskModelOrange;
 ImageRecPtr collisionImageBlue;
 ImageRecPtr collisionImageOrange;
 
+ImageRecPtr loseImage;
+ImageRecPtr winImage;
+
 NodeRecPtr playerModelTorso;
 NodeRecPtr playerModelHeadBlue;
 NodeRecPtr playerModelHeadOrange;
@@ -193,6 +196,24 @@ NodeTransitPtr buildScene()
 
 	collisionImageBlue = loadImageFromSequence("models/wall_collision_blue/wall_collision_blue_", ".png", 25, 25);
 	collisionImageOrange = loadImageFromSequence("models/wall_collision_orange/wall_collision_orange_", ".png", 25, 25);
+
+#ifdef _highrezTextures_
+	if (userFaction == PLAYER_FACTION_BLUE) {
+		winImage = loadImageFromSequence("models/1024/win_blue/win_blue_", ".png", 70, 30);
+		loseImage = loadImageFromSequence("models/1024/lose_blue/lose_blue_", ".png", 70, 30);
+	} else {
+		winImage = loadImageFromSequence("models/1024/win_orange/win_orange_", ".png", 70, 30);
+		loseImage = loadImageFromSequence("models/1024/lose_orange/lose_orange_", ".png", 70, 30);
+	}
+#else
+	if (userFaction == PLAYER_FACTION_BLUE) {
+		winImage = loadImageFromSequence("models/512/win_blue/win_blue_", ".png", 70, 30);
+		loseImage = loadImageFromSequence("models/512/lose_blue/lose_blue_", ".png", 70, 30);
+	} else {
+		winImage = loadImageFromSequence("models/512/win_orange/win_orange_", ".png", 70, 30);
+		loseImage = loadImageFromSequence("models/512/lose_orange/lose_orange_", ".png", 70, 30);
+	}
+#endif
 
 	shieldTorusMaterialBlue = SimpleMaterial::create();
 	shieldTorusMaterialBlue->setDiffuse(colorBlue);

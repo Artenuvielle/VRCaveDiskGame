@@ -95,6 +95,14 @@ void Player::loseLife() {
 		if (lifeCounter->getLifeCount() == 0) {
 			// game over
 			gameRunning = false;
+
+			ImageRecPtr gameResultImage;
+			if (faction == userFaction) {
+				gameResultImage = loseImage;
+			} else {
+				gameResultImage = winImage;
+			}
+			gameResultAnimationId = createAnimation(Vec3f(0,135,-135), 270, 270, Vec3f(0,0,1), gameResultImage, 30, INFINITE, false);
 			std::cout << "Game over" << '\n';
 		}
 	}

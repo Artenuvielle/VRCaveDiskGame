@@ -4,6 +4,7 @@
 
 //#define _logFrames_
 #define _simulate_
+//#define _highrezTextures_
 
 #include <OpenSG/OSGGLUT.h>
 #include <OpenSG/OSGConfig.h>
@@ -80,5 +81,6 @@ const Real32 lightTrailInputPointMinDistance = 20.f;
 extern NodeRecPtr root;
 
 extern bool gameRunning;
+extern int gameResultAnimationId;
 
 #endif
