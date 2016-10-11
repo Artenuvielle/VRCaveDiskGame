@@ -72,8 +72,8 @@ const Real32 aiCatchArmTorsoDistance = 50.f; // cm
 const Real32 collisionAnimationSize = 150; // in cm
 const Real32 scoreAnimationSize = 1200; // in cm
 
-const Int32 lightTrailMaxPoints = 100;
-const Real32 lightTrailPointsPerSecond = 50.f;
+const Int32 lightTrailMaxPoints = 70;
+const Real32 lightTrailPointsPerSecond = 30.f;
 const Real32 lightTrailSizeGrow = 100.f;
 const Real32 lightTrailMaxSize = 1.5f;
 const Real32 lightTrailInputPointMinDistance = 20.f;

@@ -102,7 +102,7 @@ void Player::loseLife() {
 			} else {
 				gameResultImage = winImage;
 			}
-			gameResultAnimationId = createAnimation(Vec3f(0,135,-135), 270, 270, Vec3f(0,0,1), gameResultImage, 30, INFINITE, false);
+			gameResultAnimationId = createAnimation(Vec3f(0,135,-305), 270, 270, Vec3f(0,0,1), gameResultImage, 30, std::numeric_limits<float>::infinity(), false);
 			std::cout << "Game over" << '\n';
 		}
 	}
@@ -112,7 +112,7 @@ void Player::recalculatePositions() {
 	Vec3f headYAxisDirection;
 	headRotation.multVec(Vec3f(0,1,0), headYAxisDirection);
 	torsoPosition = headPosition - headYAxisDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
-	if (modelIncluded) {
+        if (modelIncluded) {
 		torsoTransform->setTranslation(torsoPosition);
 		Vec3f headEulerAxisRotation;
 		headRotation.getEulerAngleRad(headEulerAxisRotation);
