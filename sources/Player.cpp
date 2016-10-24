@@ -102,7 +102,7 @@ void Player::loseLife() {
 			} else {
 				gameResultImage = winImage;
 			}
-			gameResultAnimationId = createAnimation(Vec3f(0,135,-305), 270, 270, Vec3f(0,0,1), gameResultImage, 30, std::numeric_limits<float>::infinity(), false);
+			gameResultAnimationId = createAnimation(Vec3f(WALL_X_MID,WALL_Y_MID,WALL_Z_MID), 270, 270, Vec3f(0,0,1), gameResultImage, 30, std::numeric_limits<float>::infinity(), false);
 			std::cout << "Game over" << '\n';
 		}
 	}
