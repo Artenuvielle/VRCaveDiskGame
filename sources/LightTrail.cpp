@@ -147,6 +147,7 @@ LightTrail::~LightTrail() {
 void LightTrail::addPoint(Vec3f pos) {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	Vec3f direction = pos - lastPointAdded;
+	points.erase(points.end() - 1);
 	if (timeOfLastPointAdded - time < 1000.f / lightTrailPointsPerSecond && direction.squareLength() > lightTrailInputPointMinDistance * lightTrailInputPointMinDistance) {
 		Vec3f secondLastDirection = lastPointAdded - secondLastPointAdded;
 		Vec3f Q1 = secondLastPointAdded + secondLastDirection * 0.75;
@@ -159,10 +160,11 @@ void LightTrail::addPoint(Vec3f pos) {
 		timeOfLastPointAdded = time;
 		secondLastPointAdded = lastPointAdded;
 		lastPointAdded = pos;
-		while (points.size() > lightTrailMaxPoints) {
+		while (points.size() > lightTrailMaxPoints - 1) {
 			points.erase(points.begin());
 		}
 	}
+	points.push_back(pos);
 }
 
 void LightTrail::addPointWithoutTest(Vec3f pos) {
