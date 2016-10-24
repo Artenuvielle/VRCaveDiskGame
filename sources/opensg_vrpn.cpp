@@ -99,6 +99,11 @@ void VRPN_CALLBACK callback_head_tracker(void* userData, const vrpn_TRACKERCB tr
 {
 	head_orientation = Quaternion(tracker.quat[0], tracker.quat[1], tracker.quat[2], tracker.quat[3]);
 	head_position = Vec3f(scale_tracker2cm(Vec3d(tracker.pos)));
+
+	if(head_position.z() > WALL_Z_MAX) {
+		head_orientation = Quaternion(-0.2f, 0.f, 0.f, 1.f);
+		head_position = Vec3f(0.f, 170.f, 130.f);
+	}
 }
 
 auto wand_orientation = Quaternion();
