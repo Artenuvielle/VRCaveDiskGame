@@ -77,14 +77,29 @@ void startGame() {
 	}
 }
 
-void sendPacket(CToSPacketType header, void* data, int size, bool reliable) {
+void sendPacket(CToSPacketType header, void* data, int size, bool reliable = false, bool instant = true) {
 	void* packetData = malloc(size + sizeof(CToSPacketType));
 	memcpy(packetData, &header, sizeof(CToSPacketType));
 	memcpy((reinterpret_cast<unsigned char *>(packetData) + sizeof(CToSPacketType)), data, size);
 	ENetPacket* packet = enet_packet_create(packetData, size + sizeof(CToSPacketType), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
 	enet_peer_send(peer, 1, packet);
-	enet_host_flush(client);
-	free(packetData);
+	if (instant) {
+		enet_host_flush(client);
+		free(packetData);
+	}
+}
+
+void sendPlayerPosition() {
+	PlayerPosition pp;
+	pp.playerId = playerId;
+	pp.factionId = userFaction;
+	user->getHeadPosition().getSeparateValues(pp.headPosX, pp.headPosY, pp.headPosZ);
+	user->getHeadRotation().getValueAsQuat(pp.headRotX, pp.headRotY, pp.headRotZ, pp.headRotW);
+	user->getDiskArmPosition().getSeparateValues(pp.rightPosX, pp.rightPosY, pp.rightPosZ);
+	user->getDiskArmRotation().getValueAsQuat(pp.rightRotX, pp.rightRotY, pp.rightRotZ, pp.rightRotW);
+	user->getShieldArmPosition().getSeparateValues(pp.leftPosX, pp.leftPosY, pp.leftPosZ);
+	user->getShieldArmRotation().getValueAsQuat(pp.leftRotX, pp.leftRotY, pp.leftRotZ, pp.leftRotW);
+	sendPacket(PLAYER_POSITION_INFORMATION, &pp, sizeof(PlayerPosition), false, false);
 }
 
 void handleGameStateBroadcast(GameInformation* information) {
@@ -173,7 +188,7 @@ void handlePacket(ENetEvent event) {
 
 void networkLoop(void* args) {
 	ENetEvent event;
-	if (enet_host_service(client, & event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
+	if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
 		std::cout << "Connection to server succeeded\n";
 	} else {
 		enet_peer_reset (peer);
@@ -183,7 +198,7 @@ void networkLoop(void* args) {
 	}
 
 	while (true) {
-		while (enet_host_service (client, & event, 0) > 0) {
+		while (enet_host_service (client, &event, 0) > 0) {
 			switch (event.type) {
 			case ENET_EVENT_TYPE_RECEIVE:
 				handlePacket(event);
@@ -507,6 +522,10 @@ void setupGLUT(int *argc, char *argv[])
 			ai->update();
 		}
 		enemy->update();
+
+		if (playerId >= 0) {
+			sendPlayerPosition();
+		}
 
 		updateAnimations();
 		
