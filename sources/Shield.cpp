@@ -75,6 +75,14 @@ Quaternion Shield::getRotation() {
 	return transform->getRotation();
 }
 
+void Shield::setCharges(Int32 newCharges) {
+	charges = newCharges;
+}
+
+Int32 Shield::getCharges() {
+	return charges;
+}
+
 void Shield::setRadius(Real32 newRadius) {
 	if (charges == 0 && newRadius >= getRadius()) {
 		return;

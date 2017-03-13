@@ -5,12 +5,16 @@
 #include <fstream>
 #include <ios>
 
+#include "enet/enet.h"
+#include "NetworkPackets.h"
+
 #include <OpenSG/OSGGLUT.h>
 #include <OpenSG/OSGConfig.h>
 #include <OpenSG/OSGSimpleGeometry.h>
 #include <OpenSG/OSGGLUTWindow.h>
 #include <OpenSG/OSGMultiDisplayWindow.h>
 #include <OpenSG/OSGSceneFileHandler.h>
+#include <OpenSG/OSGThreadManager.h>
 
 #include <OpenSG/OSGGradientBackground.h>
 #include <OpenSG/OSGImage.h>
@@ -46,6 +50,10 @@ vrpn_Analog_Remote* analog = nullptr;
 
 Player *user, *enemy;
 AI *ai;
+ENetHost *client;
+ENetPeer *peer = nullptr;
+int playerId = -2;
+ThreadRefPtr networkingThread;
 
 #ifdef _logFrames_
 std::ofstream logFile;
@@ -69,6 +77,175 @@ void startGame() {
 	}
 }
 
+void sendPacket(CToSPacketType header, void* data, int size, bool reliable) {
+	void* packetData = malloc(size + sizeof(CToSPacketType));
+	memcpy(packetData, &header, sizeof(CToSPacketType));
+	memcpy((reinterpret_cast<unsigned char *>(packetData) + sizeof(CToSPacketType)), data, size);
+	ENetPacket* packet = enet_packet_create(packetData, size + sizeof(CToSPacketType), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+	enet_peer_send(peer, 1, packet);
+	enet_host_flush(client);
+	free(packetData);
+}
+
+void handleGameStateBroadcast(GameInformation* information) {
+	if (information->isRunning) {
+		std::cout << "game started by server" << std::endl;
+		startGame();
+	} else {
+		// ensure game ending
+	}
+}
+
+void handlePlayerIdentification(PlayerInformation* information) {
+	std::cout << "got id: " << information->playerId << std::endl;
+	playerId = information->playerId;
+}
+
+void handlePlayerPositionBroadcast(PlayerPosition* information) {
+	if (information->playerId != playerId) {
+		enemy->setHeadPosition(Vec3f(information->headPosX, information->headPosY, information->headPosZ));
+		enemy->setHeadRotation(Quaternion(information->headRotX, information->headRotY, information->headRotZ, information->headRotW));
+		enemy->setDiskArmPosition(Vec3f(information->rightPosX, information->rightPosY, information->rightPosZ));
+		enemy->setDiskArmRotation(Quaternion(information->rightRotX, information->rightRotY, information->rightRotZ, information->rightRotW));
+		enemy->setShieldArmPosition(Vec3f(information->leftPosX, information->leftPosY, information->leftPosZ));
+		enemy->setShieldArmRotation(Quaternion(information->leftRotX, information->leftRotY, information->leftRotZ, information->leftRotW));
+	}
+}
+
+void handlePlayerLoseLifeBroadcast(PlayerCounterInformation* information) {
+	if (information->playerId == playerId) {
+		user->getLifeCounter()->setLifeCount(information->counter);
+	} else {
+		user->getLifeCounter()->setLifeCount(information->counter);
+	}
+}
+
+void handlePlayerShieldChargeBroadcast(PlayerCounterInformation* information) {
+	if (information->playerId == playerId) {
+		user->getShield()->setCharges(information->counter);
+	} else {
+		user->getShield()->setCharges(information->counter);
+	}
+}
+
+void handleDiskStatusBroadcast(DiskStatusInformation* information) {
+	// TODO: sync local calculation
+}
+
+void handleDiskThrowBroadcast(DiskThrowInformation* information) {
+	// TODO: implement extern disk throw
+}
+
+void handleDiskPositionBroadcast(DiskPosition* information) {
+	// TODO: sync local calculation
+}
+
+void handlePacket(ENetEvent event) {
+	SToCPacketType* header = reinterpret_cast<SToCPacketType*>(event.packet->data);
+	void* actualData = reinterpret_cast<void*>(header + 1);
+	switch (*header) {
+	case GAME_STATE_BROADCAST:
+		handleGameStateBroadcast(reinterpret_cast<GameInformation*>(actualData));
+		break;
+	case PLAYER_IDENTIFICATION:
+		handlePlayerIdentification(reinterpret_cast<PlayerInformation*>(actualData));
+		break;
+	case PLAYER_POSITION_BROADCAST:
+		handlePlayerPositionBroadcast(reinterpret_cast<PlayerPosition*>(actualData));
+		break;
+	case PLAYER_LOSE_LIFE_BROADCAST:
+		handlePlayerLoseLifeBroadcast(reinterpret_cast<PlayerCounterInformation*>(actualData));
+		break;
+	case PLAYER_LOSE_SHIELD_CHARGE_BROADCAST:
+		handlePlayerShieldChargeBroadcast(reinterpret_cast<PlayerCounterInformation*>(actualData));
+		break;
+	case DISK_STATUS_BROADCAST:
+		handleDiskStatusBroadcast(reinterpret_cast<DiskStatusInformation*>(actualData));
+		break;
+	case DISK_THROW_BROADCAST:
+		handleDiskThrowBroadcast(reinterpret_cast<DiskThrowInformation*>(actualData));
+		break;
+	case DISK_POSITION_BROADCAST:
+		handleDiskPositionBroadcast(reinterpret_cast<DiskPosition*>(actualData));
+		break;
+	}
+}
+
+void networkLoop(void* args) {
+	ENetEvent event;
+	if (enet_host_service(client, & event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
+		std::cout << "Connection to server succeeded\n";
+	} else {
+		enet_peer_reset (peer);
+		peer = nullptr;
+		std::cout << "Connection to server failed\n";
+		return;
+	}
+
+	while (true) {
+		while (enet_host_service (client, & event, 0) > 0) {
+			switch (event.type) {
+			case ENET_EVENT_TYPE_RECEIVE:
+				handlePacket(event);
+				enet_packet_destroy (event.packet);
+				break;
+       
+			case ENET_EVENT_TYPE_DISCONNECT:
+				std::cout << "Server closed connection\n";
+				return;
+			}
+		}
+	}
+}
+
+void disconnect() {
+	if (peer != nullptr) {
+		if (networkingThread->exists()) {
+			networkingThread->kill();
+		}
+		ENetEvent event;
+		enet_peer_disconnect(peer, 0);
+		/* Allow up to 3 seconds for the disconnect to succeed
+		 * and drop any packets received packets.
+		 */
+		while (enet_host_service (client, & event, 3000) > 0)
+		{
+			if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+				enet_packet_destroy (event.packet);
+			} else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
+				std::cout << "disconnect acknowledged by server\n";
+				break;
+			}
+		}
+		enet_peer_reset (peer);
+		peer = nullptr;
+		playerId = -2;
+		std::cout << "Disconnection succeeded\n";
+	}
+}
+
+bool connect(const char *hostName, enet_uint16 port) {
+	if (peer != nullptr) {
+		disconnect();
+	}
+	ENetAddress address;
+	ENetEvent event;
+
+	/* Connect to some.server.net:1234. */
+	enet_address_set_host (&address, hostName);
+	address.port = port;
+	/* Initiate the connection, allocating the two channels 0 and 1. */
+	peer = enet_host_connect (client, &address, 2, 0);    
+	if (peer == NULL)
+	{
+	   std::cerr << "No available peers for initiating an ENet connection.\n";
+	   peer = nullptr;
+	   return false;
+	}
+	networkingThread->runFunction(networkLoop, 1, NULL);
+	return true;
+}
+
 void cleanup()
 {
 #ifdef _logFrames_
@@ -81,6 +258,10 @@ void cleanup()
 	delete tracker;
 	delete button;
 	delete analog;
+	
+	enet_host_destroy(client);
+	
+	disconnect();
 }
 
 void print_tracker();
@@ -213,10 +394,11 @@ Real32 lastFPSUpdate;
 void keyboard(unsigned char k, int x, int y)
 {
 	Real32 ed;
+	ENetPacket *packet;
 	switch(k)
 	{
 		case 'q':
-		case 27: 
+		case 27:
 			cleanup();
 			exit(EXIT_SUCCESS);
 			break;
@@ -241,7 +423,26 @@ void keyboard(unsigned char k, int x, int y)
 			showFPS = !showFPS;
 			break;
 		case 'g':
-			startGame();
+			if (playerId < 0) {
+				startGame();
+			} else {
+				sendPacket(START_GAME_REQUEST, new GameInformation(), sizeof(GameInformation), true);
+			}
+			break;
+		case 'd':
+			disconnect();
+			break;
+		case 'c':
+			connect("127.0.0.1", 13244);
+			break;
+		case 'b':
+			/* Create a reliable packet of size 7 containing "packet\0" */
+			packet = enet_packet_create ("packet", 
+										 strlen ("packet") + 1, 
+										 ENET_PACKET_FLAG_RELIABLE);
+			/* Send the packet to the peer over channel id 0. */
+			enet_peer_send (peer, 0, packet);
+			enet_host_flush(client);
 			break;
 #ifdef _simulate_
 		case 'x':
@@ -302,13 +503,9 @@ void setupGLUT(int *argc, char *argv[])
 		user->setShieldArmPosition(shield_position);
 		user->update();
 
-		/*enemy->setHeadRotation(head_orientation);
-		enemy->setHeadPosition(head_position - Vec3f(0,135,0) + Vec3f(0,135,-810));
-		enemy->setDiskArmRotation(wand_orientation);
-		enemy->setDiskArmPosition((wand_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));
-		enemy->setShieldArmRotation(shield_orientation);
-		enemy->setShieldArmPosition((shield_position - Vec3f(0,135,0)) * (-1) + Vec3f(0,135,-810));*/
-		ai->update();
+		if (playerId < 0) {
+			ai->update();
+		}
 		enemy->update();
 
 		updateAnimations();
@@ -357,6 +554,14 @@ int main(int argc, char **argv)
 	OSG::preloadSharedObject("OSGFileIO");
 	OSG::preloadSharedObject("OSGImageFileIO");
 #endif
+	
+	if (enet_initialize () != 0)
+    {
+        std::cerr << "An error occurred while initializing ENet.\n";
+        return EXIT_FAILURE;
+    }
+    atexit (enet_deinitialize);
+
 	try
 	{
 		bool cfgIsSet = false;
@@ -428,6 +633,19 @@ int main(int argc, char **argv)
 		user->setEnemy(enemy);
 		enemy->setEnemy(user);
 		ai = new AI(enemy);
+		
+		client = enet_host_create (NULL       /* create a client host */,
+									1         /* only allow 1 outgoing connection */,
+									2         /* allow up 2 channels to be used, 0 and 1 */,
+									57600 / 8 /* 56K modem with 56 Kbps downstream bandwidth */,
+									14400 / 8 /* 56K modem with 14 Kbps upstream bandwidth */);
+		if (client == NULL)
+		{
+			std::cerr << "An error occurred while trying to create an ENet client host.\n";
+			exit (EXIT_FAILURE);
+		}
+
+		networkingThread = dynamic_pointer_cast<Thread>(ThreadManager::the()->getThread("Networking", TRUE));
 
 		mgr = new OSGCSM::CAVESceneManager(&cfg);
 		mgr->setWindow(mwin );

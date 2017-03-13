@@ -19,6 +19,8 @@ public:
 	Quaternion getRotation();
 	void setRadius(Real32 newRadius);
 	Real32 getRadius();
+	void setCharges(Int32 newRadius);
+	Int32 getCharges();
 	
 	void reduceCharges();
 	void refillCharges();
