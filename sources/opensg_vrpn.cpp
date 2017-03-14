@@ -77,16 +77,12 @@ void startGame() {
 	}
 }
 
-void sendPacket(CToSPacketType header, void* data, int size, bool reliable = false, bool instant = true) {
+void sendPacket(CToSPacketType header, void* data, int size, bool reliable = false) {
 	void* packetData = malloc(size + sizeof(CToSPacketType));
 	memcpy(packetData, &header, sizeof(CToSPacketType));
 	memcpy((reinterpret_cast<unsigned char *>(packetData) + sizeof(CToSPacketType)), data, size);
 	ENetPacket* packet = enet_packet_create(packetData, size + sizeof(CToSPacketType), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
 	enet_peer_send(peer, 1, packet);
-	if (instant) {
-		enet_host_flush(client);
-		free(packetData);
-	}
 }
 
 void sendPlayerPosition() {
@@ -99,7 +95,7 @@ void sendPlayerPosition() {
 	user->getDiskArmRotation().getValueAsQuat(pp.rightRotX, pp.rightRotY, pp.rightRotZ, pp.rightRotW);
 	user->getShieldArmPosition().getSeparateValues(pp.leftPosX, pp.leftPosY, pp.leftPosZ);
 	user->getShieldArmRotation().getValueAsQuat(pp.leftRotX, pp.leftRotY, pp.leftRotZ, pp.leftRotW);
-	sendPacket(PLAYER_POSITION_INFORMATION, &pp, sizeof(PlayerPosition), false, false);
+	sendPacket(CTOS_PACKET_TYPE_PLAYER_POSITION_INFORMATION, &pp, sizeof(PlayerPosition));
 }
 
 void handleGameStateBroadcast(GameInformation* information) {
@@ -159,28 +155,28 @@ void handlePacket(ENetEvent event) {
 	SToCPacketType* header = reinterpret_cast<SToCPacketType*>(event.packet->data);
 	void* actualData = reinterpret_cast<void*>(header + 1);
 	switch (*header) {
-	case GAME_STATE_BROADCAST:
+	case STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
 		handleGameStateBroadcast(reinterpret_cast<GameInformation*>(actualData));
 		break;
-	case PLAYER_IDENTIFICATION:
+	case STOC_PACKET_TYPE_PLAYER_IDENTIFICATION:
 		handlePlayerIdentification(reinterpret_cast<PlayerInformation*>(actualData));
 		break;
-	case PLAYER_POSITION_BROADCAST:
+	case STOC_PACKET_TYPE_PLAYER_POSITION_BROADCAST:
 		handlePlayerPositionBroadcast(reinterpret_cast<PlayerPosition*>(actualData));
 		break;
-	case PLAYER_LOSE_LIFE_BROADCAST:
+	case STOC_PACKET_TYPE_PLAYER_CHANGED_LIFE_BROADCAST:
 		handlePlayerLoseLifeBroadcast(reinterpret_cast<PlayerCounterInformation*>(actualData));
 		break;
-	case PLAYER_LOSE_SHIELD_CHARGE_BROADCAST:
+	case STOC_PACKET_TYPE_PLAYER_CHANGED_SHIELD_CHARGE_BROADCAST:
 		handlePlayerShieldChargeBroadcast(reinterpret_cast<PlayerCounterInformation*>(actualData));
 		break;
-	case DISK_STATUS_BROADCAST:
+	case STOC_PACKET_TYPE_DISK_STATUS_BROADCAST:
 		handleDiskStatusBroadcast(reinterpret_cast<DiskStatusInformation*>(actualData));
 		break;
-	case DISK_THROW_BROADCAST:
+	case STOC_PACKET_TYPE_DISK_THROW_BROADCAST:
 		handleDiskThrowBroadcast(reinterpret_cast<DiskThrowInformation*>(actualData));
 		break;
-	case DISK_POSITION_BROADCAST:
+	case STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
 		handleDiskPositionBroadcast(reinterpret_cast<DiskPosition*>(actualData));
 		break;
 	}
@@ -441,7 +437,7 @@ void keyboard(unsigned char k, int x, int y)
 			if (playerId < 0) {
 				startGame();
 			} else {
-				sendPacket(START_GAME_REQUEST, new GameInformation(), sizeof(GameInformation), true);
+				sendPacket(CTOS_PACKET_TYPE_START_GAME_REQUEST, new GameInformation(), sizeof(GameInformation), true);
 			}
 			break;
 		case 'd':
