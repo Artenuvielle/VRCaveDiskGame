@@ -10,7 +10,7 @@ set(USER_CMAKE_TEXT "initialized by '${CMAKE_CURRENT_LIST_FILE}'")
 set(User_use64BitCompiler FALSE CACHE BOOL ${USER_CMAKE_TEXT})
 
 # How should your program be named? Change "MyProject" in the next line
-set(User_ProjectName "MyProject" CACHE STRING ${USER_CMAKE_TEXT})
+set(User_ProjectName "TheGridCave" CACHE STRING ${USER_CMAKE_TEXT})
 
 # Do you want to build a "Debug" or a "Release" version? Change "Release"
 # in the next line if necessary. Please avoid Typos!
