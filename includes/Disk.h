@@ -41,6 +41,7 @@ public:
 	bool startDraw(Vec3f pos);
 	bool endDraw(Vec3f pos);
 	bool forceReturn();
+	bool forceThrow(Vec3f pos, Vec3f momentum);
 	void catchDisk();
 	void update();
 	Disk(PlayerFaction type, DiskEventHandler* handler);

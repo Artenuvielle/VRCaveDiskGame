@@ -142,6 +142,16 @@ bool Disk::forceReturn() {
 	return false;
 }
 
+bool Disk::forceThrow(Vec3f position, Vec3f mom) {
+	if (startDraw(position)) {
+		momentum = mom;
+		if (endDraw(position)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void Disk::catchDisk() {
 	rotationAroundAxis = 0;
 	if (lightTrailLeft != nullptr) {
