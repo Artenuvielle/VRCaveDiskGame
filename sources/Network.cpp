@@ -10,6 +10,7 @@ Client::Client() {
 		exit (EXIT_FAILURE);
 	}
 	_packetHandler = nullptr;
+	_peer = nullptr;
 }
 
 Client::~Client() {
@@ -29,14 +30,13 @@ bool Client::connect(const char* hostAdress, short port) {
 		disconnect();
 	}
 	keepConnection = true;
-
+	
 	ENetAddress enetAddress;
 	enet_address_set_host(&enetAddress, hostAdress);
 	enetAddress.port = port;
 	_peer = enet_host_connect(_enetHost, &enetAddress, 2, 0); 
-	if (_peer == NULL)
-	{
-		std::cerr << "No available peers for initiating an ENet connection.\n";
+	if (_peer == NULL) {
+		std::cerr << "No available peers for initiating an ENet connection." << std::endl;
 		_peer = nullptr;
 		return false;
 	}
@@ -45,11 +45,11 @@ bool Client::connect(const char* hostAdress, short port) {
 		if (_packetHandler != nullptr) {
 			_packetHandler->handleConnect(event.peer->incomingPeerID);
 		}
-		std::cout << "Connection to server succeeded\n";
+		std::cout << "Connection to server succeeded" << std::endl;
 	} else {
 		enet_peer_reset (_peer);
 		_peer = nullptr;
-		std::cout << "Connection to server failed\n";
+		std::cout << "Connection to server failed" << std::endl;
 		return false;
 	}
 	return true;
@@ -66,7 +66,7 @@ void Client::disconnect() {
 			if (event.type == ENET_EVENT_TYPE_RECEIVE) {
 				enet_packet_destroy(event.packet);
 			} else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
-				std::cout << "disconnect acknowledged by server\n";
+				std::cout << "disconnect acknowledged by server" << std::endl;
 				break;
 			}
 		}
@@ -75,7 +75,7 @@ void Client::disconnect() {
 		}
 		enet_peer_reset (_peer);
 		_peer = nullptr;
-		std::cout << "Disconnection succeeded\n";
+		std::cout << "Disconnection succeeded" << std::endl;
 		Sleep(10);
 	}
 }
@@ -100,7 +100,7 @@ void Client::networkLoop() {
 				if (_packetHandler != nullptr) {
 					_packetHandler->handleDisconnect(event.peer->incomingPeerID);
 				}
-				std::cout << "Server closed connection\n";
+				std::cout << "Server closed connection" << std::endl;
 				return;
 			}
 		}
