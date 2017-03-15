@@ -17,8 +17,8 @@ public:
 	void requestGameStart();
 	void handleGameTick();
 	
-	void handleConnect(unsigned short peerId) override;
-	void handleDisconnect(unsigned short peerId) override;
+	void handleConnect() override;
+	void handleDisconnect() override;
 	void handleSToCPacket(unsigned short peerId, SToCPacketType* header, void* data, int size) override;
 
 	bool observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) override;
@@ -32,11 +32,20 @@ public:
 private:
 	void startGame();
 	void sendUserPosition();
+
+	void handleGameStateBroadcast(GameInformation* information);
+	void handlePlayerIdentification(PlayerInformation* information);
+	void handlePlayerPositionBroadcast(PlayerPosition* information);
+	void handlePlayerChangeLifeBroadcast(PlayerCounterInformation* information);
+	void handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation* information);
+	void handleDiskStatusBroadcast(DiskStatusInformation* information);
+	void handleDiskThrowBroadcast(DiskThrowInformation* information);
+	void handleDiskPositionBroadcast(DiskPosition* information);
+
 	Client *_client;
 	Input *_input;
 	Player *_user, *_enemy;
 	AI *_ai;
-	int _peerId;
 	int _userId, _enemyId;
 	
 #ifdef _logFrames_

@@ -11,6 +11,7 @@ Client::Client() {
 	}
 	_packetHandler = nullptr;
 	_peer = nullptr;
+	netwokLoopRunning = false;
 }
 
 Client::~Client() {
@@ -43,7 +44,7 @@ bool Client::connect(const char* hostAdress, short port) {
 	ENetEvent event;
 	if (enet_host_service(_enetHost, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
 		if (_packetHandler != nullptr) {
-			_packetHandler->handleConnect(event.peer->incomingPeerID);
+			_packetHandler->handleConnect();
 		}
 		std::cout << "Connection to server succeeded" << std::endl;
 	} else {
@@ -71,39 +72,45 @@ void Client::disconnect() {
 			}
 		}
 		if (_packetHandler != nullptr) {
-			_packetHandler->handleDisconnect(event.peer->incomingPeerID);
+			_packetHandler->handleDisconnect();
 		}
 		enet_peer_reset (_peer);
 		_peer = nullptr;
 		std::cout << "Disconnection succeeded" << std::endl;
-		Sleep(10);
+		while (netwokLoopRunning) {
+			Sleep(10);
+		}
 	}
 }
 
 void Client::networkLoop() {
-	if (isConnected()) {
+	if (isConnected() && !netwokLoopRunning) {
+		netwokLoopRunning = true;
 		ENetEvent event;
 		SToCPacketType* header;
 		void* actualData;
-		while (keepConnection && enet_host_service (_enetHost, &event, 0) > 0) {
-			switch (event.type) {
-			case ENET_EVENT_TYPE_RECEIVE:
-				header = reinterpret_cast<SToCPacketType*>(event.packet->data);
-				actualData = reinterpret_cast<void*>(header + 1);
-				if (_packetHandler != nullptr) {
-					_packetHandler->handleSToCPacket(event.peer->incomingPeerID, header, actualData, event.packet->dataLength - sizeof(SToCPacketType));
-				}
-				enet_packet_destroy(event.packet);
-				break;
+		while (keepConnection) {
+			while (enet_host_service(_enetHost, &event, 0) > 0) {
+				switch (event.type) {
+				case ENET_EVENT_TYPE_RECEIVE:
+					header = reinterpret_cast<SToCPacketType*>(event.packet->data);
+					actualData = reinterpret_cast<void*>(header + 1);
+					if (_packetHandler != nullptr) {
+						_packetHandler->handleSToCPacket(event.peer->incomingPeerID, header, actualData, event.packet->dataLength - sizeof(SToCPacketType));
+					}
+					enet_packet_destroy(event.packet);
+					break;
        
-			case ENET_EVENT_TYPE_DISCONNECT:
-				if (_packetHandler != nullptr) {
-					_packetHandler->handleDisconnect(event.peer->incomingPeerID);
+				case ENET_EVENT_TYPE_DISCONNECT:
+					if (_packetHandler != nullptr) {
+						_packetHandler->handleDisconnect();
+					}
+					std::cout << "Server closed connection" << std::endl;
+					return;
 				}
-				std::cout << "Server closed connection" << std::endl;
-				return;
 			}
 		}
+		netwokLoopRunning = false;
 	}
 }
 

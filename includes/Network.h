@@ -7,8 +7,8 @@
 
 class SToCPacketHandler {
 public:
-	virtual void handleConnect(unsigned short peerId) = 0;
-	virtual void handleDisconnect(unsigned short peerId) = 0;
+	virtual void handleConnect() = 0;
+	virtual void handleDisconnect() = 0;
 	virtual void handleSToCPacket(unsigned short peerId, SToCPacketType* header, void* data, int size) = 0;
 };
 
@@ -33,6 +33,7 @@ private:
 	ENetPeer* _peer;
 
 	bool keepConnection;
+	bool netwokLoopRunning;
 };
 
 void networkLoopOnClient(void* client);

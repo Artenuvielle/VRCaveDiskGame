@@ -19,7 +19,6 @@ GameManager::GameManager(Client* client, Input* input) {
 	//_user->attach(this);
 	//_enemy->attach(this);
 	
-	_peerId = -1;
 	_userId = -2;
 	_enemyId = -2;
 		
@@ -109,17 +108,103 @@ void GameManager::handleGameTick() {
 }
 
 
-void GameManager::handleConnect(unsigned short peerId) {
-	_peerId = peerId;
+void GameManager::handleConnect() {}
+
+void GameManager::handleDisconnect() {
+	_userId = -2;
+	_enemyId = -2;
 }
 
-void GameManager::handleDisconnect(unsigned short peerId) {
-	_peerId = -1;
+void GameManager::handleGameStateBroadcast(GameInformation* information) {
+	if (information->isRunning) {
+		std::cout << "game started by server" << std::endl;
+		startGame();
+	} else {
+		// ensure game ending
+	}
+}
+
+void GameManager::handlePlayerIdentification(PlayerInformation* information) {
+	std::cout << "got player id '" << information->playerId << "' from server" << std::endl;
+	_userId = information->playerId;
+}
+
+void GameManager::handlePlayerPositionBroadcast(PlayerPosition* information) {
+	if (information->playerId != _userId) {
+		_enemy->setHeadPosition(Vec3f(information->headPosX, information->headPosY, information->headPosZ));
+		_enemy->setHeadRotation(Quaternion(information->headRotX, information->headRotY, information->headRotZ, information->headRotW));
+		_enemy->setDiskArmPosition(Vec3f(information->rightPosX, information->rightPosY, information->rightPosZ));
+		_enemy->setDiskArmRotation(Quaternion(information->rightRotX, information->rightRotY, information->rightRotZ, information->rightRotW));
+		_enemy->setShieldArmPosition(Vec3f(information->leftPosX, information->leftPosY, information->leftPosZ));
+		_enemy->setShieldArmRotation(Quaternion(information->leftRotX, information->leftRotY, information->leftRotZ, information->leftRotW));
+	}
+}
+
+void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation* information) {
+	std::cout << "player '" << information->playerId << "' life: " << information->counter << std::endl;
+	if (information->playerId == _userId) {
+		_user->getLifeCounter()->setLifeCount(information->counter);
+	} else {
+		_user->getLifeCounter()->setLifeCount(information->counter);
+	}
+}
+
+void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation* information) {
+	std::cout << "player '" << information->playerId << "' shield: " << information->counter << std::endl;
+	if (information->playerId == _userId) {
+		_user->getShield()->setCharges(information->counter);
+	} else {
+		_user->getShield()->setCharges(information->counter);
+	}
+}
+
+void GameManager::handleDiskStatusBroadcast(DiskStatusInformation* information) {
+	// TODO: sync local calculation
+}
+
+void GameManager::handleDiskThrowBroadcast(DiskThrowInformation* information) {
+	std::cout << "player '" << information->playerId << "' throw: Vec3f("
+		<< information->diskPosX << ", "
+		<< information->diskPosY << ", "
+		<< information->diskPosZ << ") Vec3f("
+		<< information->diskMomentumX << ", "
+		<< information->diskMomentumY << ", "
+		<< information->diskMomentumZ << ")"<< std::endl;
+	if (information->playerId != _userId) {
+		_enemy->getDisk()->forceThrow(Vec3f(information->diskPosX, information->diskPosY, information->diskPosZ), Vec3f(information->diskMomentumX, information->diskMomentumY, information->diskMomentumZ));
+	}
+}
+
+void GameManager::handleDiskPositionBroadcast(DiskPosition* information) {
+	// TODO: sync local calculation
 }
 
 void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header, void* data, int size) {
 	switch (*header) {
-	
+	case STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
+		handleGameStateBroadcast(reinterpret_cast<GameInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_PLAYER_IDENTIFICATION:
+		handlePlayerIdentification(reinterpret_cast<PlayerInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_PLAYER_POSITION_BROADCAST:
+		handlePlayerPositionBroadcast(reinterpret_cast<PlayerPosition*>(data));
+		break;
+	case STOC_PACKET_TYPE_PLAYER_CHANGED_LIFE_BROADCAST:
+		handlePlayerChangeLifeBroadcast(reinterpret_cast<PlayerCounterInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_PLAYER_CHANGED_SHIELD_CHARGE_BROADCAST:
+		handlePlayerChangeShieldChargeBroadcast(reinterpret_cast<PlayerCounterInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_DISK_STATUS_BROADCAST:
+		handleDiskStatusBroadcast(reinterpret_cast<DiskStatusInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_DISK_THROW_BROADCAST:
+		handleDiskThrowBroadcast(reinterpret_cast<DiskThrowInformation*>(data));
+		break;
+	case STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
+		handleDiskPositionBroadcast(reinterpret_cast<DiskPosition*>(data));
+		break;
 	}
 }
 
