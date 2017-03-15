@@ -83,4 +83,8 @@ extern NodeRecPtr root;
 extern bool gameRunning;
 extern int gameResultAnimationId;
 
+enum GameNotifications {
+
+};
+
 #endif
