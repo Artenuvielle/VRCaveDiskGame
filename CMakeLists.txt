@@ -29,6 +29,14 @@ if(WIN32)
 	target_link_libraries(${PROJECT_NAME} winmm.lib ws2_32.lib)
 endif()
 
+
+set(protobuf_BUILD_TESTS OFF)
+set(protobuf_MSVC_STATIC_RUNTIME OFF)
+add_subdirectory(protobuf/cmake)
+target_include_directories(${PROJECT_NAME} PUBLIC "protobuf/src/")
+target_link_libraries(${PROJECT_NAME} libprotobuf)
+
+
 if(WIN32)
 	if("${CMAKE_CONFIGURATION_TYPES}" STREQUAL "Release")
 		set(confTypeFolder "rel")

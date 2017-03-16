@@ -52,7 +52,7 @@ set(Boost_USE_STATIC_LIBS ON CACHE BOOL ${USER_CMAKE_TEXT})
 
 
 if(WIN32)
-  set(BOOST_ROOT "C:/libraries/install/${libPathArchitecture}/boost${boost_ver}"  CACHE PATH ${USER_CMAKE_TEXT})
+  set(BOOST_ROOT "C:/libraries/install/${libPathArchitecture}/boost${boost_ver}" CACHE PATH ${USER_CMAKE_TEXT})
   set(OPENSG_ROOT "C:/libraries/install/${libPathArchitecture}/opensg" CACHE PATH ${USER_CMAKE_TEXT})
   set(inVRs_ROOT_DIR "C:/libraries/install/${libPathArchitecture}/invrs" CACHE PATH ${USER_CMAKE_TEXT})
   set(CAVESceneManager_DIR "C:/libraries/install/${libPathArchitecture}/invrs/cmake" CACHE PATH ${USER_CMAKE_TEXT})

@@ -1,5 +1,7 @@
 @echo off
 
+call .\windows_run_protoc.bat
+
 set CMAKE_CONFIGURATION_FILE=%1
 if '%1'=='' (
 	set CMAKE_CONFIGURATION_FILE=..\user.cmake

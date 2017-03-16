@@ -88,15 +88,15 @@ void Client::networkLoop() {
 		netwokLoopRunning = true;
 		ENetEvent event;
 		SToCPacketType* header;
-		void* actualData;
+		std::string serializedData;
 		while (keepConnection) {
 			while (enet_host_service(_enetHost, &event, 0) > 0) {
 				switch (event.type) {
 				case ENET_EVENT_TYPE_RECEIVE:
 					header = reinterpret_cast<SToCPacketType*>(event.packet->data);
-					actualData = reinterpret_cast<void*>(header + 1);
+					serializedData = std::string(reinterpret_cast<const char*>(event.packet->data + sizeof(SToCPacketType)), event.packet->dataLength - sizeof(SToCPacketType));
 					if (_packetHandler != nullptr) {
-						_packetHandler->handleSToCPacket(event.peer->incomingPeerID, header, actualData, event.packet->dataLength - sizeof(SToCPacketType));
+						_packetHandler->handleSToCPacket(event.peer->incomingPeerID, header, serializedData);
 					}
 					enet_packet_destroy(event.packet);
 					break;
@@ -116,14 +116,6 @@ void Client::networkLoop() {
 
 bool Client::isConnected() {
 	return _peer != nullptr;
-}
-
-void Client::sendPacket(CToSPacketType header, void* data, int size, bool reliable) {
-	void* packetData = malloc(size + sizeof(CToSPacketType));
-	memcpy(packetData, &header, sizeof(CToSPacketType));
-	memcpy((reinterpret_cast<unsigned char *>(packetData) + sizeof(CToSPacketType)), data, size);
-	ENetPacket* packet = enet_packet_create(packetData, size + sizeof(CToSPacketType), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-	enet_peer_send(_peer, 1, packet);
 }
 
 void networkLoopOnClient(void* client) {

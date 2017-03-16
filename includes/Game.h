@@ -19,7 +19,7 @@ public:
 	
 	void handleConnect() override;
 	void handleDisconnect() override;
-	void handleSToCPacket(unsigned short peerId, SToCPacketType* header, void* data, int size) override;
+	void handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) override;
 
 	bool observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) override;
 	void observableRevoke(GameNotifications notification, Observable<GameNotifications>* src) override;

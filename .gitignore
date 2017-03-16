@@ -1,6 +1,9 @@
 build_user/
 cache/
 exe/
+includes/*.pb.h
+proto/out/
+sources/*.pb.cc
 start_csm.bat
 start_demo_cave_Release.bat
 start_demo_Release.bat

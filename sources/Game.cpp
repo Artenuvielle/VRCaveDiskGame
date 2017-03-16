@@ -7,6 +7,38 @@
 std::ofstream logFile;
 #endif
 
+PositionPacketType createPosition(Vec3f pos) {
+    PositionPacketType ret;
+    ret.set_x(pos.x());
+    ret.set_y(pos.y());
+    ret.set_z(pos.z());
+    return ret;
+}
+
+OrientationPacketType createOrientation(Quaternion rot) {
+    OrientationPacketType ret;
+    ret.set_x(rot.x());
+    ret.set_y(rot.y());
+    ret.set_z(rot.z());
+    ret.set_w(rot.w());
+    return ret;
+}
+
+Vec3f createVector(PositionPacketType pos) {
+	return Vec3f(pos.x(), pos.y(), pos.z());
+}
+
+Quaternion createQuaternion(OrientationPacketType rot) {
+	return Quaternion(rot.x(), rot.y(), rot.z(), rot.w());
+}
+
+template<typename S> inline
+S* deserialize(std::string serializedData) {
+	S* ret = new S();
+	ret->ParseFromString(serializedData);
+	return ret;
+}
+
 GameManager::GameManager(Client* client, Input* input) {
 	_client = client;
 	_input = input;
@@ -41,7 +73,9 @@ void GameManager::requestGameStart() {
 	if (_userId < 0) {
 		startGame();
 	} else {
-		_client->sendPacket(CTOS_PACKET_TYPE_START_GAME_REQUEST, new GameInformation(), sizeof(GameInformation), true);
+		GameInformation* gi = new GameInformation();
+		gi->set_is_running(true);
+		_client->sendPacket(CTOS_PACKET_TYPE_START_GAME_REQUEST, gi, true);
 	}
 }
 
@@ -64,16 +98,22 @@ void GameManager::startGame() {
 }
 
 void GameManager::sendUserPosition() {
-	PlayerPosition pp;
-	pp.playerId = _userId;
-	pp.factionId = userFaction;
-	_user->getHeadPosition().getSeparateValues(pp.headPosX, pp.headPosY, pp.headPosZ);
-	_user->getHeadRotation().getValueAsQuat(pp.headRotX, pp.headRotY, pp.headRotZ, pp.headRotW);
-	_user->getDiskArmPosition().getSeparateValues(pp.rightPosX, pp.rightPosY, pp.rightPosZ);
-	_user->getDiskArmRotation().getValueAsQuat(pp.rightRotX, pp.rightRotY, pp.rightRotZ, pp.rightRotW);
-	_user->getShieldArmPosition().getSeparateValues(pp.leftPosX, pp.leftPosY, pp.leftPosZ);
-	_user->getShieldArmRotation().getValueAsQuat(pp.leftRotX, pp.leftRotY, pp.leftRotZ, pp.leftRotW);
-	_client->sendPacket(CTOS_PACKET_TYPE_PLAYER_POSITION_INFORMATION, &pp, sizeof(PlayerPosition));
+	PlayerPosition* pp = new PlayerPosition();
+	pp->set_player_id(_userId);
+	pp->set_faction_id(userFaction);
+	PositionPacketType head_pos = createPosition(_user->getHeadPosition());
+	PositionPacketType main_hand_pos = createPosition(_user->getDiskArmPosition());
+	PositionPacketType off_hand_pos = createPosition(_user->getShieldArmPosition());
+	OrientationPacketType head_rot = createOrientation(_user->getHeadRotation());
+	OrientationPacketType main_hand_rot = createOrientation(_user->getDiskArmRotation());
+	OrientationPacketType off_hand_rot = createOrientation(_user->getShieldArmRotation());
+	pp->set_allocated_head_pos(&head_pos);
+	pp->set_allocated_head_rot(&head_rot);
+	pp->set_allocated_main_hand_pos(&main_hand_pos);
+	pp->set_allocated_main_hand_rot(&main_hand_rot);
+	pp->set_allocated_off_hand_pos(&off_hand_pos);
+	pp->set_allocated_off_hand_rot(&off_hand_rot);
+	_client->sendPacket<PlayerPosition>(CTOS_PACKET_TYPE_PLAYER_POSITION_INFORMATION, pp);
 }
 
 void GameManager::handleGameTick() {
@@ -116,7 +156,7 @@ void GameManager::handleDisconnect() {
 }
 
 void GameManager::handleGameStateBroadcast(GameInformation* information) {
-	if (information->isRunning) {
+	if (information->is_running()) {
 		std::cout << "game started by server" << std::endl;
 		startGame();
 	} else {
@@ -125,36 +165,38 @@ void GameManager::handleGameStateBroadcast(GameInformation* information) {
 }
 
 void GameManager::handlePlayerIdentification(PlayerInformation* information) {
-	std::cout << "got player id '" << information->playerId << "' from server" << std::endl;
-	_userId = information->playerId;
+	std::cout << "got player id '" << information->player_id() << "' from server" << std::endl;
+	_userId = information->player_id();
 }
 
 void GameManager::handlePlayerPositionBroadcast(PlayerPosition* information) {
-	if (information->playerId != _userId) {
-		_enemy->setHeadPosition(Vec3f(information->headPosX, information->headPosY, information->headPosZ));
-		_enemy->setHeadRotation(Quaternion(information->headRotX, information->headRotY, information->headRotZ, information->headRotW));
-		_enemy->setDiskArmPosition(Vec3f(information->rightPosX, information->rightPosY, information->rightPosZ));
-		_enemy->setDiskArmRotation(Quaternion(information->rightRotX, information->rightRotY, information->rightRotZ, information->rightRotW));
-		_enemy->setShieldArmPosition(Vec3f(information->leftPosX, information->leftPosY, information->leftPosZ));
-		_enemy->setShieldArmRotation(Quaternion(information->leftRotX, information->leftRotY, information->leftRotZ, information->leftRotW));
+	/*std::cout << "player '" << information->player_id() << "' pos: Vec3f("
+		<< createVector(information->head_pos()) << ")"<< std::endl;*/
+	if (information->player_id() != _userId) {
+		_enemy->setHeadPosition(createVector(information->head_pos()));
+		_enemy->setDiskArmPosition(createVector(information->main_hand_pos()));
+		_enemy->setShieldArmPosition(createVector(information->off_hand_pos()));
+		_enemy->setHeadRotation(createQuaternion(information->head_rot()));
+		_enemy->setDiskArmRotation(createQuaternion(information->main_hand_rot()));
+		_enemy->setShieldArmRotation(createQuaternion(information->off_hand_rot()));
 	}
 }
 
 void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation* information) {
-	std::cout << "player '" << information->playerId << "' life: " << information->counter << std::endl;
-	if (information->playerId == _userId) {
-		_user->getLifeCounter()->setLifeCount(information->counter);
+	std::cout << "player '" << information->player_id() << "' life: " << information->counter() << std::endl;
+	if (information->player_id() == _userId) {
+		_user->getLifeCounter()->setLifeCount(information->counter());
 	} else {
-		_user->getLifeCounter()->setLifeCount(information->counter);
+		_user->getLifeCounter()->setLifeCount(information->counter());
 	}
 }
 
 void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation* information) {
-	std::cout << "player '" << information->playerId << "' shield: " << information->counter << std::endl;
-	if (information->playerId == _userId) {
-		_user->getShield()->setCharges(information->counter);
+	std::cout << "player '" << information->player_id() << "' shield: " << information->counter() << std::endl;
+	if (information->player_id() == _userId) {
+		_user->getShield()->setCharges(information->counter());
 	} else {
-		_user->getShield()->setCharges(information->counter);
+		_user->getShield()->setCharges(information->counter());
 	}
 }
 
@@ -163,15 +205,11 @@ void GameManager::handleDiskStatusBroadcast(DiskStatusInformation* information) 
 }
 
 void GameManager::handleDiskThrowBroadcast(DiskThrowInformation* information) {
-	std::cout << "player '" << information->playerId << "' throw: Vec3f("
-		<< information->diskPosX << ", "
-		<< information->diskPosY << ", "
-		<< information->diskPosZ << ") Vec3f("
-		<< information->diskMomentumX << ", "
-		<< information->diskMomentumY << ", "
-		<< information->diskMomentumZ << ")"<< std::endl;
-	if (information->playerId != _userId) {
-		_enemy->getDisk()->forceThrow(Vec3f(information->diskPosX, information->diskPosY, information->diskPosZ), Vec3f(information->diskMomentumX, information->diskMomentumY, information->diskMomentumZ));
+	std::cout << "player '" << information->player_id() << "' throw: Vec3f("
+		<< createVector(information->disk_pos()) << ") Vec3f("
+		<< createVector(information->disk_momentum()) << ")"<< std::endl;
+	if (information->player_id() != _userId) {
+		_enemy->getDisk()->forceThrow(createVector(information->disk_pos()), createVector(information->disk_momentum()));
 	}
 }
 
@@ -179,31 +217,31 @@ void GameManager::handleDiskPositionBroadcast(DiskPosition* information) {
 	// TODO: sync local calculation
 }
 
-void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header, void* data, int size) {
+void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) {
 	switch (*header) {
 	case STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
-		handleGameStateBroadcast(reinterpret_cast<GameInformation*>(data));
+		handleGameStateBroadcast(deserialize<GameInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_PLAYER_IDENTIFICATION:
-		handlePlayerIdentification(reinterpret_cast<PlayerInformation*>(data));
+		handlePlayerIdentification(deserialize<PlayerInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_PLAYER_POSITION_BROADCAST:
-		handlePlayerPositionBroadcast(reinterpret_cast<PlayerPosition*>(data));
+		handlePlayerPositionBroadcast(deserialize<PlayerPosition>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_PLAYER_CHANGED_LIFE_BROADCAST:
-		handlePlayerChangeLifeBroadcast(reinterpret_cast<PlayerCounterInformation*>(data));
+		handlePlayerChangeLifeBroadcast(deserialize<PlayerCounterInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_PLAYER_CHANGED_SHIELD_CHARGE_BROADCAST:
-		handlePlayerChangeShieldChargeBroadcast(reinterpret_cast<PlayerCounterInformation*>(data));
+		handlePlayerChangeShieldChargeBroadcast(deserialize<PlayerCounterInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_DISK_STATUS_BROADCAST:
-		handleDiskStatusBroadcast(reinterpret_cast<DiskStatusInformation*>(data));
+		handleDiskStatusBroadcast(deserialize<DiskStatusInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_DISK_THROW_BROADCAST:
-		handleDiskThrowBroadcast(reinterpret_cast<DiskThrowInformation*>(data));
+		handleDiskThrowBroadcast(deserialize<DiskThrowInformation>(serializedData));
 		break;
 	case STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
-		handleDiskPositionBroadcast(reinterpret_cast<DiskPosition*>(data));
+		handleDiskPositionBroadcast(deserialize<DiskPosition>(serializedData));
 		break;
 	}
 }

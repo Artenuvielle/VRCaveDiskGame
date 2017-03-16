@@ -37,11 +37,11 @@ function(_add_project_setup ADD_PROJECT_NAME)
 		SET(ADD_PROJECT_SOURCE_DIR "src")
 	endif()
 	# sources
-	file(GLOB_RECURSE SRCS "${ADD_PROJECT_SOURCE_DIR}/*.cpp")
+	file(GLOB_RECURSE SRCS "${ADD_PROJECT_SOURCE_DIR}/*.c*")
 	_add_project_files(SOURCE_FILES ${SRCS})
 	
 	include_directories(${ADD_PROJECT_HEADER_DIR})
-	file(GLOB_RECURSE INCS "${ADD_PROJECT_HEADER_DIR}/*.h")
+	file(GLOB_RECURSE INCS "${ADD_PROJECT_HEADER_DIR}/*.h" "${ADD_PROJECT_HEADER_DIR}/*.inl")
 	# Headers
 	_add_project_files(HEADER_FILES ${INCS})
 	_add_project_resource_files("Header Files" ${HEADER_FILES})
