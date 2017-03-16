@@ -160,6 +160,9 @@ void GameManager::handleGameStateBroadcast(GameInformation* information) {
 		std::cout << "game started by server" << std::endl;
 		startGame();
 	} else {
+		if (information->has_winning_player_id()) {
+
+		}
 		// ensure game ending
 	}
 }
@@ -187,7 +190,7 @@ void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation* info
 	if (information->player_id() == _userId) {
 		_user->getLifeCounter()->setLifeCount(information->counter());
 	} else {
-		_user->getLifeCounter()->setLifeCount(information->counter());
+		_enemy->getLifeCounter()->setLifeCount(information->counter());
 	}
 }
 
@@ -196,7 +199,7 @@ void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformati
 	if (information->player_id() == _userId) {
 		_user->getShield()->setCharges(information->counter());
 	} else {
-		_user->getShield()->setCharges(information->counter());
+		_enemy->getShield()->setCharges(information->counter());
 	}
 }
 
