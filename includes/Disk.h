@@ -8,6 +8,7 @@
 #include <OSGCSM/OSGCAVESceneManager.h>
 
 #include "Common.h"
+#include "Observer.h"
 #include "Shield.h"
 #include "LightTrail.h"
 
@@ -25,10 +26,11 @@ public:
 	virtual void handleDiskCatch() = 0;
 };
 
-class Disk {
+class Disk : public Observable<GameNotifications> {
 public:
 	bool setPosition(Vec3f newPosition);
 	Vec3f getPosition();
+	Vec3f getMomentum();
 	void setTargetOwnerPosition(Vec3f newPosition);
 	Vec3f getTargetOwnerPosition();
 	void setTargetEnemyPosition(Vec3f newPosition);

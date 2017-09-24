@@ -48,8 +48,8 @@ GameManager::GameManager(Client* client, Input* input) {
 	_enemy->setEnemy(_user);
 	_ai = new AI(_enemy);
 
-	//_user->attach(this);
-	//_enemy->attach(this);
+	_user->getDisk()->attach(this);
+	_enemy->getDisk()->attach(this);
 	
 	_userId = -2;
 	_enemyId = -2;
@@ -64,6 +64,8 @@ GameManager::~GameManager() {
 #ifdef _logFrames_
 	logFile.close();
 #endif
+	_user->getDisk()->detach(this);
+	_enemy->getDisk()->detach(this);
 	delete _ai;
 	delete _user;
 	delete _enemy;
@@ -173,8 +175,6 @@ void GameManager::handlePlayerIdentification(PlayerInformation* information) {
 }
 
 void GameManager::handlePlayerPositionBroadcast(PlayerPosition* information) {
-	/*std::cout << "player '" << information->player_id() << "' pos: Vec3f("
-		<< createVector(information->head_pos()) << ")"<< std::endl;*/
 	if (information->player_id() != _userId) {
 		_enemy->setHeadPosition(createVector(information->head_pos()));
 		_enemy->setDiskArmPosition(createVector(information->main_hand_pos()));
@@ -217,6 +217,11 @@ void GameManager::handleDiskThrowBroadcast(DiskThrowInformation* information) {
 }
 
 void GameManager::handleDiskPositionBroadcast(DiskPosition* information) {
+	if (information->player_id() == _userId) {
+		_user->getDisk()->setPosition(createVector(information->disk_pos()));
+	} else {
+		_enemy->getDisk()->setPosition(createVector(information->disk_pos()));
+	}
 	// TODO: sync local calculation
 }
 
@@ -250,7 +255,20 @@ void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header
 }
 
 bool GameManager::observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) {
-	
+	switch (notification) {
+	case USER_DISK_THROW:
+		if (src == _user->getDisk()) {
+			DiskThrowInformation* dti = new DiskThrowInformation();
+			dti->set_player_id(_userId);
+			dti->set_faction_id(userFaction);
+			PositionPacketType disk_pos = createPosition(_user->getDisk()->getPosition());
+			PositionPacketType disk_momentum = createPosition(_user->getDisk()->getMomentum());
+			dti->set_allocated_disk_pos(&disk_pos);
+			dti->set_allocated_disk_momentum(&disk_momentum);
+			_client->sendPacket(CTOS_PACKET_TYPE_PLAYER_THROW_INFORMATION, dti, true);
+		}
+		break;
+	}
 	return true;
 }
 

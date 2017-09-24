@@ -57,6 +57,10 @@ Vec3f Disk::getPosition() {
 	return transform->getTranslation();
 }
 
+Vec3f Disk::getMomentum() {
+	return momentum;
+}
+
 void Disk::setTargetOwnerPosition(Vec3f newPosition) {
 	targetOwnerPosition = newPosition;
 }
@@ -129,6 +133,7 @@ bool Disk::endDraw(Vec3f position) {
 		if (lightTrailRight == nullptr) {
 			lightTrailRight = LightTrail::create(diskType, getPosition() - lightTrailDirection);
 		}
+		notify(USER_DISK_THROW);
 		return true;
 	}
 	return false;

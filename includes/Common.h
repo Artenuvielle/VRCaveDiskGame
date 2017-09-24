@@ -84,7 +84,7 @@ extern bool gameRunning;
 extern int gameResultAnimationId;
 
 enum GameNotifications {
-
+	USER_DISK_THROW = 0
 };
 
 #endif
