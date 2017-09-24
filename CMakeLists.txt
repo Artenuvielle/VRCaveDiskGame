@@ -30,8 +30,8 @@ if(WIN32)
 endif()
 
 
-set(protobuf_BUILD_TESTS OFF)
-set(protobuf_MSVC_STATIC_RUNTIME OFF)
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build tests")
+set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Link static runtime libraries")
 add_subdirectory(protobuf/cmake)
 target_include_directories(${PROJECT_NAME} PUBLIC "protobuf/src/")
 target_link_libraries(${PROJECT_NAME} libprotobuf)
