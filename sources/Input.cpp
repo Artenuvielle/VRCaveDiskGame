@@ -47,7 +47,7 @@ Quaternion Input::getHeadOrientation() {
 }
 
 Quaternion Input::getMainHandOrientation() {
-	return _offHandOrientation;
+	return _mainHandOrientation;
 }
 
 Quaternion Input::getOffHandOrientation() {
