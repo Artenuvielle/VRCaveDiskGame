@@ -8,6 +8,15 @@
 #include "Common.h"
 #include "Player.h"
 #include "ArtificialIntelligence.h"
+#include <mutex>
+
+#define MAX_PACKETS_PER_TICK 20
+
+struct PacketInformation {
+	unsigned short peerId;
+	SToCPacketType header;
+	std::string serializedData;
+};
 
 class GameManager : public SToCPacketHandler, public Observer<GameNotifications>, public InputHandler {
 public:
@@ -20,7 +29,7 @@ public:
 	void handleConnect() override;
 	void handleDisconnect() override;
 	void handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) override;
-
+	
 	bool observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) override;
 	void observableRevoke(GameNotifications notification, Observable<GameNotifications>* src) override;
 
@@ -30,6 +39,8 @@ public:
 	void handleButtonUpdate(int buttonId, bool isPressed);
 
 private:
+	void processReceivedPackages();
+	void processSToCPacket(unsigned short peerId, SToCPacketType header, std::string serializedData);
 	void startGame();
 	void sendUserPosition();
 
@@ -42,6 +53,8 @@ private:
 	void handleDiskThrowBroadcast(DiskThrowInformation* information);
 	void handleDiskPositionBroadcast(DiskPosition* information);
 
+	std::vector<PacketInformation> _packets;
+	std::mutex _packetVectorMutex;
 	Client *_client;
 	Input *_input;
 	Player *_user, *_enemy;

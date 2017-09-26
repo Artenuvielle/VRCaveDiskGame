@@ -112,7 +112,7 @@ void Player::recalculatePositions() {
 	Vec3f headYAxisDirection;
 	headRotation.multVec(Vec3f(0,1,0), headYAxisDirection);
 	torsoPosition = headPosition - headYAxisDirection * PLAYER_HEAD_SIZE - Vec3f(0,PLAYER_TORSO_HEAD_OFFSET,0);
-        if (modelIncluded) {
+	if (modelIncluded) {
 		torsoTransform->setTranslation(torsoPosition);
 		Vec3f headEulerAxisRotation;
 		headRotation.getEulerAngleRad(headEulerAxisRotation);

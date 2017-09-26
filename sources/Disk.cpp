@@ -133,7 +133,7 @@ bool Disk::endDraw(Vec3f position) {
 		if (lightTrailRight == nullptr) {
 			lightTrailRight = LightTrail::create(diskType, getPosition() - lightTrailDirection);
 		}
-		notify(USER_DISK_THROW);
+		notify(GAME_NOTIFICATION_DISK_THROWN);
 		return true;
 	}
 	return false;

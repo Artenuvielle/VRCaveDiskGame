@@ -40,6 +40,7 @@ S* deserialize(std::string serializedData) {
 }
 
 GameManager::GameManager(Client* client, Input* input) {
+	_packets = std::vector<PacketInformation>();
 	_client = client;
 	_input = input;
 	_user = new Player(userFaction, false);
@@ -119,6 +120,7 @@ void GameManager::sendUserPosition() {
 }
 
 void GameManager::handleGameTick() {
+	processReceivedPackages();
 	_user->setHeadRotation(_input->getHeadOrientation());
 	_user->setHeadPosition(_input->getHeadPosition());
 	_user->setDiskArmRotation(_input->getMainHandOrientation());
@@ -208,9 +210,6 @@ void GameManager::handleDiskStatusBroadcast(DiskStatusInformation* information) 
 }
 
 void GameManager::handleDiskThrowBroadcast(DiskThrowInformation* information) {
-	std::cout << "player '" << information->player_id() << "' throw: Vec3f("
-		<< createVector(information->disk_pos()) << ") Vec3f("
-		<< createVector(information->disk_momentum()) << ")"<< std::endl;
 	if (information->player_id() != _userId) {
 		_enemy->getDisk()->forceThrow(createVector(information->disk_pos()), createVector(information->disk_momentum()));
 	}
@@ -226,7 +225,24 @@ void GameManager::handleDiskPositionBroadcast(DiskPosition* information) {
 }
 
 void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) {
-	switch (*header) {
+	_packetVectorMutex.lock();
+	PacketInformation pi = {peerId, *header, serializedData};
+	_packets.push_back(pi);
+	_packetVectorMutex.unlock();
+}
+
+void GameManager::processReceivedPackages() {
+	std::vector<PacketInformation> packetsToHandle = std::vector<PacketInformation>();
+	_packetVectorMutex.lock();
+	_packets.swap(packetsToHandle);
+	_packetVectorMutex.unlock();
+	for (std::vector<PacketInformation>::iterator it = packetsToHandle.begin() ; it != packetsToHandle.end(); ++it) {
+		processSToCPacket(it->peerId, it->header, it->serializedData);
+	}
+}
+
+void GameManager::processSToCPacket(unsigned short peerId, SToCPacketType header, std::string serializedData) {
+	switch (header) {
 	case STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
 		handleGameStateBroadcast(deserialize<GameInformation>(serializedData));
 		break;
@@ -256,7 +272,7 @@ void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header
 
 bool GameManager::observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) {
 	switch (notification) {
-	case USER_DISK_THROW:
+	case GAME_NOTIFICATION_DISK_THROWN:
 		if (src == _user->getDisk()) {
 			DiskThrowInformation* dti = new DiskThrowInformation();
 			dti->set_player_id(_userId);
