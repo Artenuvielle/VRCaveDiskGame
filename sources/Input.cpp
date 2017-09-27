@@ -205,7 +205,7 @@ public:
 	}
 };
 
-Registrar<VRPNInput> vrpn("VRPN");
+Registrar<VRPNInput> vrpnRegister("VRPN");
 
 
 //std::map<std::string, InputCreation> inputPossibilities;
