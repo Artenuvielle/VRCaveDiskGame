@@ -8,7 +8,20 @@
 
 OSG_USING_NAMESPACE
 
+struct AnimationParams {
+	int id;
+	Vec3f position;
+	Real32 xsize;
+	Real32 ysize;
+	Vec3f normal;
+	ImageRecPtr image;
+	Int32 fps;
+	Real32 duration;
+	bool loop;
+};
+
 std::list<AnimationData> allAnimations = std::list<AnimationData>();
+std::list<AnimationParams> newAnimations = std::list<AnimationParams>();
 int animationIdCounter = 0;
 bool changedSceneGraph = false;
 
@@ -17,53 +30,73 @@ int createWallCollisionAnimation(Vec3f position, Real32 xsize, Real32 ysize, Vec
 	return createAnimation(position, xsize, ysize, normal, image, 25, 1000, true);
 }
 
+void processNewlyQueuedAnimations() {
+	while (!newAnimations.empty()) {
+		AnimationParams params = newAnimations.front();
+		AnimationData newAnimation;
+		newAnimation.id = params.id;
+		newAnimation.startTime = glutGet(GLUT_ELAPSED_TIME);
+		NodeRecPtr animationPlane = makePlane(params.xsize, params.ysize, 1, 1);
+		ComponentTransformRecPtr animationTransform = ComponentTransform::create();
+		animationTransform->setTranslation(params.position);
+		animationTransform->setRotation(Quaternion(Vec3f(0,0,1), params.normal));
+		newAnimation.animationTransformNode = makeNodeFor(animationTransform);
+		newAnimation.animationTransformNode->addChild(animationPlane);
+		root->addChild(newAnimation.animationTransformNode);
+	
+		SimpleMaterialRecPtr chunkMaterial = SimpleMaterial::create();
+		BlendChunkRecPtr blendChunk = BlendChunk::create();
+		chunkMaterial->addChunk(blendChunk);
+		blendChunk->setSrcFactor(GL_SRC_ALPHA);
+		blendChunk->setDestFactor(GL_ONE_MINUS_SRC_ALPHA);
+	
+		newAnimation.textureToAnimate = TextureObjChunk::create();
+		ImageRecPtr imageSet(params.image);
+		newAnimation.imageSet = imageSet;
+		newAnimation.fps = params.fps;
+		newAnimation.duration = params.duration;
+		newAnimation.loop = params.loop;
+		newAnimation.textureToAnimate->setImage(newAnimation.imageSet);
+		newAnimation.textureToAnimate->setFrame(0);
+
+		chunkMaterial->addChunk(newAnimation.textureToAnimate);
+
+		TexGenChunkRecPtr texGenChunk = TexGenChunk::create();
+		chunkMaterial->addChunk(texGenChunk);
+
+		TextureEnvChunkRecPtr envChunk = TextureEnvChunk::create();
+		chunkMaterial->addChunk(envChunk);
+
+		GeometryRecPtr planeGeo = dynamic_cast<Geometry*>(animationPlane->getCore());
+		planeGeo->setMaterial(chunkMaterial);
+	
+		allAnimations.push_front(newAnimation);
+		newAnimations.pop_front();
+		changedSceneGraph = true;
+	}
+}
+
 int createAnimation(Vec3f position, Real32 xsize, Real32 ysize, Vec3f normal, ImageRecPtr image, Int32 fps, Real32 duration, bool loop) {
-	AnimationData newAnimation;
-	newAnimation.id = animationIdCounter;
-	newAnimation.startTime = glutGet(GLUT_ELAPSED_TIME);
-
-	NodeRecPtr animationPlane = makePlane(xsize, ysize, 1, 1);
-	ComponentTransformRecPtr animationTransform = ComponentTransform::create();
-	animationTransform->setTranslation(position);
-	animationTransform->setRotation(Quaternion(Vec3f(0,0,1), normal));
-	newAnimation.animationTransformNode = makeNodeFor(animationTransform);
-	newAnimation.animationTransformNode->addChild(animationPlane);
-	root->addChild(newAnimation.animationTransformNode);
-	
-	SimpleMaterialRecPtr chunkMaterial = SimpleMaterial::create();
-	BlendChunkRecPtr blendChunk = BlendChunk::create();
-	chunkMaterial->addChunk(blendChunk);
-	blendChunk->setSrcFactor(GL_SRC_ALPHA);
-	blendChunk->setDestFactor(GL_ONE_MINUS_SRC_ALPHA);
-	
-	newAnimation.textureToAnimate = TextureObjChunk::create();
-	newAnimation.imageSet = image;
-	newAnimation.fps = fps;
-	newAnimation.duration = duration;
-	newAnimation.loop = loop;
-	newAnimation.textureToAnimate->setImage(newAnimation.imageSet);
-	newAnimation.textureToAnimate->setFrame(0);
-
-	chunkMaterial->addChunk(newAnimation.textureToAnimate);
-
-	TexGenChunkRecPtr texGenChunk = TexGenChunk::create();
-	chunkMaterial->addChunk(texGenChunk);
-
-	TextureEnvChunkRecPtr envChunk = TextureEnvChunk::create();
-	chunkMaterial->addChunk(envChunk);
-
-	GeometryRecPtr planeGeo = dynamic_cast<Geometry*>(animationPlane->getCore());
-	planeGeo->setMaterial(chunkMaterial);
-	
-	allAnimations.push_front(newAnimation);
-
+	AnimationParams newAnimationParams;
+	newAnimationParams.id = animationIdCounter;
 	animationIdCounter++;
-	changedSceneGraph = true;
-	return newAnimation.id;
+	newAnimationParams.position = position;
+	newAnimationParams.xsize = xsize;
+	newAnimationParams.ysize = ysize;
+	newAnimationParams.normal = normal;
+	newAnimationParams.image = image;
+	newAnimationParams.fps = fps;
+	newAnimationParams.duration = duration;
+	newAnimationParams.loop = loop;
+	
+	newAnimations.push_front(newAnimationParams);
+
+	return newAnimationParams.id;
 }
 
 void updateAnimations() {
 	Int32 time = glutGet(GLUT_ELAPSED_TIME);
+	processNewlyQueuedAnimations();
 	for(std::list<AnimationData>::iterator iterator = allAnimations.begin(); iterator != allAnimations.end(); ++iterator) {
 		if (time > iterator->startTime + iterator->duration) {
 			root->subChild(iterator->animationTransformNode);
