@@ -14,8 +14,7 @@
 
 struct PacketInformation {
 	unsigned short peerId;
-	SToCPacketType header;
-	std::string serializedData;
+	ProtobufMessagePacket* packet;
 };
 
 class GameManager : public SToCPacketHandler, public Observer<GameNotifications>, public InputHandler {
@@ -28,7 +27,7 @@ public:
 	
 	void handleConnect() override;
 	void handleDisconnect() override;
-	void handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) override;
+	void handleSToCPacket(unsigned short peerId, ProtobufMessagePacket* packet) override;
 	
 	bool observableUpdate(GameNotifications notification, Observable<GameNotifications>* src) override;
 	void observableRevoke(GameNotifications notification, Observable<GameNotifications>* src) override;
@@ -40,18 +39,18 @@ public:
 
 private:
 	void processReceivedPackages();
-	void processSToCPacket(unsigned short peerId, SToCPacketType header, std::string serializedData);
+	void processSToCPacket(unsigned short peerId, ProtobufMessagePacket* packet);
 	void startGame();
 	void sendUserPosition();
 
-	void handleGameStateBroadcast(GameInformation* information);
-	void handlePlayerIdentification(PlayerInformation* information);
-	void handlePlayerPositionBroadcast(PlayerPosition* information);
-	void handlePlayerChangeLifeBroadcast(PlayerCounterInformation* information);
-	void handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation* information);
-	void handleDiskStatusBroadcast(DiskStatusInformation* information);
-	void handleDiskThrowBroadcast(DiskThrowInformation* information);
-	void handleDiskPositionBroadcast(DiskPosition* information);
+	void handleGameStateBroadcast(GameInformation information);
+	void handlePlayerIdentification(PlayerInformation information);
+	void handlePlayerPositionBroadcast(PlayerPosition information);
+	void handlePlayerChangeLifeBroadcast(PlayerCounterInformation information);
+	void handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation information);
+	void handleDiskStatusBroadcast(DiskStatusInformation information);
+	void handleDiskThrowBroadcast(DiskThrowInformation information);
+	void handleDiskPositionBroadcast(DiskPosition information);
 
 	std::vector<PacketInformation> _packets;
 	std::mutex _packetVectorMutex;

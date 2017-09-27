@@ -97,6 +97,7 @@ void keyboard(unsigned char k, int x, int y)
 			}
 			break;
 		case 'c':
+			//if (networkClient->connect("10.155.39.1", 13244)) {
 			if (networkClient->connect("127.0.0.1", 13244)) {
 				networkingThread->runFunction(networkLoopOnClient, 1, networkClient);
 			}

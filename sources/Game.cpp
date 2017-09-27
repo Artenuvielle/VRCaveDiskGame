@@ -32,13 +32,6 @@ Quaternion createQuaternion(OrientationPacketType rot) {
 	return Quaternion(rot.x(), rot.y(), rot.z(), rot.w());
 }
 
-template<typename S> inline
-S* deserialize(std::string serializedData) {
-	S* ret = new S();
-	ret->ParseFromString(serializedData);
-	return ret;
-}
-
 GameManager::GameManager(Client* client, Input* input) {
 	_packets = std::vector<PacketInformation>();
 	_client = client;
@@ -78,7 +71,10 @@ void GameManager::requestGameStart() {
 	} else {
 		GameInformation* gi = new GameInformation();
 		gi->set_is_running(true);
-		_client->sendPacket(CTOS_PACKET_TYPE_START_GAME_REQUEST, gi, true);
+		ProtobufMessagePacket* packet = new ProtobufMessagePacket();
+		packet->set_header(ProtobufMessagePacket_Header_CTOS_PACKET_TYPE_START_GAME_REQUEST);
+		packet->set_allocated_game_information(gi);
+		_client->sendPacket(packet, true);
 	}
 }
 
@@ -116,7 +112,10 @@ void GameManager::sendUserPosition() {
 	pp->set_allocated_main_hand_rot(&main_hand_rot);
 	pp->set_allocated_off_hand_pos(&off_hand_pos);
 	pp->set_allocated_off_hand_rot(&off_hand_rot);
-	_client->sendPacket<PlayerPosition>(CTOS_PACKET_TYPE_PLAYER_POSITION_INFORMATION, pp);
+	ProtobufMessagePacket* packet = new ProtobufMessagePacket();
+	packet->set_header(ProtobufMessagePacket_Header_CTOS_PACKET_TYPE_PLAYER_POSITION_INFORMATION);
+	packet->set_allocated_player_position(pp);
+	_client->sendPacket(packet);
 }
 
 void GameManager::handleGameTick() {
@@ -159,74 +158,74 @@ void GameManager::handleDisconnect() {
 	_enemyId = -2;
 }
 
-void GameManager::handleGameStateBroadcast(GameInformation* information) {
-	if (information->is_running()) {
+void GameManager::handleGameStateBroadcast(GameInformation information) {
+	if (information.is_running()) {
 		std::cout << "game started by server" << std::endl;
 		startGame();
 	} else {
-		if (information->has_winning_player_id()) {
+		if (information.has_winning_player_id()) {
 
 		}
 		// ensure game ending
 	}
 }
 
-void GameManager::handlePlayerIdentification(PlayerInformation* information) {
-	std::cout << "got player id '" << information->player_id() << "' from server" << std::endl;
-	_userId = information->player_id();
+void GameManager::handlePlayerIdentification(PlayerInformation information) {
+	std::cout << "got player id '" << information.player_id() << "' from server" << std::endl;
+	_userId = information.player_id();
 }
 
-void GameManager::handlePlayerPositionBroadcast(PlayerPosition* information) {
-	if (information->player_id() != _userId) {
-		_enemy->setHeadPosition(createVector(information->head_pos()));
-		_enemy->setDiskArmPosition(createVector(information->main_hand_pos()));
-		_enemy->setShieldArmPosition(createVector(information->off_hand_pos()));
-		_enemy->setHeadRotation(createQuaternion(information->head_rot()));
-		_enemy->setDiskArmRotation(createQuaternion(information->main_hand_rot()));
-		_enemy->setShieldArmRotation(createQuaternion(information->off_hand_rot()));
+void GameManager::handlePlayerPositionBroadcast(PlayerPosition information) {
+	if (information.player_id() != _userId) {
+		_enemy->setHeadPosition(createVector(information.head_pos()));
+		_enemy->setDiskArmPosition(createVector(information.main_hand_pos()));
+		_enemy->setShieldArmPosition(createVector(information.off_hand_pos()));
+		_enemy->setHeadRotation(createQuaternion(information.head_rot()));
+		_enemy->setDiskArmRotation(createQuaternion(information.main_hand_rot()));
+		_enemy->setShieldArmRotation(createQuaternion(information.off_hand_rot()));
 	}
 }
 
-void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation* information) {
-	std::cout << "player '" << information->player_id() << "' life: " << information->counter() << std::endl;
-	if (information->player_id() == _userId) {
-		_user->getLifeCounter()->setLifeCount(information->counter());
+void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation information) {
+	std::cout << "player '" << information.player_id() << "' life: " << information.counter() << std::endl;
+	if (information.player_id() == _userId) {
+		_user->getLifeCounter()->setLifeCount(information.counter());
 	} else {
-		_enemy->getLifeCounter()->setLifeCount(information->counter());
+		_enemy->getLifeCounter()->setLifeCount(information.counter());
 	}
 }
 
-void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation* information) {
-	std::cout << "player '" << information->player_id() << "' shield: " << information->counter() << std::endl;
-	if (information->player_id() == _userId) {
-		_user->getShield()->setCharges(information->counter());
+void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformation information) {
+	std::cout << "player '" << information.player_id() << "' shield: " << information.counter() << std::endl;
+	if (information.player_id() == _userId) {
+		_user->getShield()->setCharges(information.counter());
 	} else {
-		_enemy->getShield()->setCharges(information->counter());
+		_enemy->getShield()->setCharges(information.counter());
 	}
 }
 
-void GameManager::handleDiskStatusBroadcast(DiskStatusInformation* information) {
+void GameManager::handleDiskStatusBroadcast(DiskStatusInformation information) {
 	// TODO: sync local calculation
 }
 
-void GameManager::handleDiskThrowBroadcast(DiskThrowInformation* information) {
-	if (information->player_id() != _userId) {
-		_enemy->getDisk()->forceThrow(createVector(information->disk_pos()), createVector(information->disk_momentum()));
+void GameManager::handleDiskThrowBroadcast(DiskThrowInformation information) {
+	if (information.player_id() != _userId) {
+		_enemy->getDisk()->forceThrow(createVector(information.disk_pos()), createVector(information.disk_momentum()));
 	}
 }
 
-void GameManager::handleDiskPositionBroadcast(DiskPosition* information) {
-	if (information->player_id() == _userId) {
-		_user->getDisk()->setPosition(createVector(information->disk_pos()));
+void GameManager::handleDiskPositionBroadcast(DiskPosition information) {
+	if (information.player_id() == _userId) {
+		_user->getDisk()->setPosition(createVector(information.disk_pos()));
 	} else {
-		_enemy->getDisk()->setPosition(createVector(information->disk_pos()));
+		_enemy->getDisk()->setPosition(createVector(information.disk_pos()));
 	}
 	// TODO: sync local calculation
 }
 
-void GameManager::handleSToCPacket(unsigned short peerId, SToCPacketType* header, std::string serializedData) {
+void GameManager::handleSToCPacket(unsigned short peerId, ProtobufMessagePacket* packet) {
 	_packetVectorMutex.lock();
-	PacketInformation pi = {peerId, *header, serializedData};
+	PacketInformation pi = {peerId, packet};
 	_packets.push_back(pi);
 	_packetVectorMutex.unlock();
 }
@@ -237,35 +236,35 @@ void GameManager::processReceivedPackages() {
 	_packets.swap(packetsToHandle);
 	_packetVectorMutex.unlock();
 	for (std::vector<PacketInformation>::iterator it = packetsToHandle.begin() ; it != packetsToHandle.end(); ++it) {
-		processSToCPacket(it->peerId, it->header, it->serializedData);
+		processSToCPacket(it->peerId, it->packet);
 	}
 }
 
-void GameManager::processSToCPacket(unsigned short peerId, SToCPacketType header, std::string serializedData) {
-	switch (header) {
-	case STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
-		handleGameStateBroadcast(deserialize<GameInformation>(serializedData));
+void GameManager::processSToCPacket(unsigned short peerId, ProtobufMessagePacket* packet) {
+	switch (packet->header()) {
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_GAME_STATE_BROADCAST:
+		handleGameStateBroadcast(packet->game_information());
 		break;
-	case STOC_PACKET_TYPE_PLAYER_IDENTIFICATION:
-		handlePlayerIdentification(deserialize<PlayerInformation>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_PLAYER_IDENTIFICATION:
+		handlePlayerIdentification(packet->player_information());
 		break;
-	case STOC_PACKET_TYPE_PLAYER_POSITION_BROADCAST:
-		handlePlayerPositionBroadcast(deserialize<PlayerPosition>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_PLAYER_POSITION_BROADCAST:
+		handlePlayerPositionBroadcast(packet->player_position());
 		break;
-	case STOC_PACKET_TYPE_PLAYER_CHANGED_LIFE_BROADCAST:
-		handlePlayerChangeLifeBroadcast(deserialize<PlayerCounterInformation>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_PLAYER_CHANGED_LIFE_BROADCAST:
+		handlePlayerChangeLifeBroadcast(packet->player_counter_information());
 		break;
-	case STOC_PACKET_TYPE_PLAYER_CHANGED_SHIELD_CHARGE_BROADCAST:
-		handlePlayerChangeShieldChargeBroadcast(deserialize<PlayerCounterInformation>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_PLAYER_CHANGED_SHIELD_CHARGE_BROADCAST:
+		handlePlayerChangeShieldChargeBroadcast(packet->player_counter_information());
 		break;
-	case STOC_PACKET_TYPE_DISK_STATUS_BROADCAST:
-		handleDiskStatusBroadcast(deserialize<DiskStatusInformation>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_DISK_STATUS_BROADCAST:
+		handleDiskStatusBroadcast(packet->disk_status_information());
 		break;
-	case STOC_PACKET_TYPE_DISK_THROW_BROADCAST:
-		handleDiskThrowBroadcast(deserialize<DiskThrowInformation>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_DISK_THROW_BROADCAST:
+		handleDiskThrowBroadcast(packet->disk_throw_information());
 		break;
-	case STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
-		handleDiskPositionBroadcast(deserialize<DiskPosition>(serializedData));
+	case ProtobufMessagePacket_Header_STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
+		handleDiskPositionBroadcast(packet->disk_position());
 		break;
 	}
 }
@@ -281,7 +280,10 @@ bool GameManager::observableUpdate(GameNotifications notification, Observable<Ga
 			PositionPacketType disk_momentum = createPosition(_user->getDisk()->getMomentum());
 			dti->set_allocated_disk_pos(&disk_pos);
 			dti->set_allocated_disk_momentum(&disk_momentum);
-			_client->sendPacket(CTOS_PACKET_TYPE_PLAYER_THROW_INFORMATION, dti, true);
+			ProtobufMessagePacket* packet = new ProtobufMessagePacket();
+			packet->set_header(ProtobufMessagePacket_Header_CTOS_PACKET_TYPE_PLAYER_THROW_INFORMATION);
+			packet->set_allocated_disk_throw_information(dti);
+			_client->sendPacket(packet, true);
 		}
 		break;
 	}
