@@ -217,8 +217,10 @@ void GameManager::handleDiskThrowBroadcast(DiskThrowInformation information) {
 void GameManager::handleDiskPositionBroadcast(DiskPosition information) {
 	if (information.player_id() == _userId) {
 		_user->getDisk()->setPosition(createVector(information.disk_pos()));
+		_user->getDisk()->setRotation(createQuaternion(information.disk_rot()));
 	} else {
 		_enemy->getDisk()->setPosition(createVector(information.disk_pos()));
+		_enemy->getDisk()->setRotation(createQuaternion(information.disk_rot()));
 	}
 	// TODO: sync local calculation
 }
