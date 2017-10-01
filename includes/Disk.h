@@ -9,17 +9,11 @@
 
 #include "Common.h"
 #include "Observer.h"
+#include "NetworkPackets.h"
 #include "Shield.h"
 #include "LightTrail.h"
 
 OSG_USING_NAMESPACE
-
-enum DiskState {
-	DISK_STATE_READY = 0,
-	DISK_STATE_DRAWN,
-	DISK_STATE_FREE_FLY,
-	DISK_STATE_RETURNING
-};
 
 class DiskEventHandler {
 public:
