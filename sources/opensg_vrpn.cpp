@@ -37,6 +37,8 @@ OSGCSM::CAVEConfig cfg;
 OSGCSM::CAVESceneManager *mgr = nullptr;
 
 const char* useInput = "VRPN";
+short port = 13244;
+char* ip = "127.0.0.1";
 Input* input;
 Client* networkClient;
 GameManager* gameManager;
@@ -98,7 +100,8 @@ void keyboard(unsigned char k, int x, int y)
 			break;
 		case 'c':
 			//if (networkClient->connect("10.155.39.1", 13244)) {
-			if (networkClient->connect("127.0.0.1", 13244)) {
+			std::cout << "Attempting to connect to " << ip << ":" << port << std::endl;
+			if (networkClient->connect(ip, port)) {
 				networkingThread->runFunction(networkLoopOnClient, 1, networkClient);
 			}
 			break;
@@ -198,6 +201,10 @@ int main(int argc, char **argv)
 						return EXIT_FAILURE;
 					}
 					cfgIsSet = true;
+				} else if(strcmp(argv[a],"-p") == 0) {
+					port = atoi(argv[a][2] ? &argv[a][2] : &argv[++a][0]);
+				} else if(strcmp(argv[a],"-h") == 0) {
+					ip = argv[a][2] ? &argv[a][2] : &argv[++a][0];
 				}
 			} else {
 				std::cout << "Loading scene file '" << argv[a] << "'\n";
