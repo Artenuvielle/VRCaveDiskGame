@@ -22,14 +22,14 @@ public:
 
 class Disk : public Observable<GameNotifications> {
 public:
-	bool setPosition(Vec3f newPosition);
+	bool setPosition(Vec3f newPosition, bool force = false);
 	Vec3f getPosition();
 	Vec3f getMomentum();
 	void setTargetOwnerPosition(Vec3f newPosition);
 	Vec3f getTargetOwnerPosition();
 	void setTargetEnemyPosition(Vec3f newPosition);
 	Vec3f getTargetEnemyPosition();
-	bool setRotation(Quaternion newRotation);
+	bool setRotation(Quaternion newRotation, bool force = false);
 	void setEnemyShield(Shield* enemyShield);
 	Quaternion getRotation();
 	DiskState getState();

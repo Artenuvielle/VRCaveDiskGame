@@ -81,6 +81,7 @@ const Real32 lightTrailInputPointMinDistance = 20.f;
 extern NodeRecPtr root;
 
 extern bool gameRunning;
+extern bool isConnected;
 extern int gameResultAnimationId;
 
 enum GameNotifications {

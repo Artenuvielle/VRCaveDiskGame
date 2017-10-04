@@ -151,11 +151,14 @@ void GameManager::handleGameTick() {
 }
 
 
-void GameManager::handleConnect() {}
+void GameManager::handleConnect() {
+	isConnected = true;
+}
 
 void GameManager::handleDisconnect() {
 	_userId = -2;
 	_enemyId = -2;
+	isConnected = false;
 }
 
 void GameManager::handleGameStateBroadcast(GameInformation information) {
@@ -166,7 +169,7 @@ void GameManager::handleGameStateBroadcast(GameInformation information) {
 		if (information.has_winning_player_id()) {
 
 		}
-		// ensure game ending
+		gameRunning = false;
 	}
 }
 
@@ -189,8 +192,14 @@ void GameManager::handlePlayerPositionBroadcast(PlayerPosition information) {
 void GameManager::handlePlayerChangeLifeBroadcast(PlayerCounterInformation information) {
 	std::cout << "player '" << information.player_id() << "' life: " << information.counter() << std::endl;
 	if (information.player_id() == _userId) {
+		while (_user->getLifeCounter()->getLifeCount() > information.counter()) {
+			_user->loseLife();
+		}
 		_user->getLifeCounter()->setLifeCount(information.counter());
 	} else {
+		while (_enemy->getLifeCounter()->getLifeCount() > information.counter()) {
+			_enemy->loseLife();
+		}
 		_enemy->getLifeCounter()->setLifeCount(information.counter());
 	}
 }
@@ -205,7 +214,22 @@ void GameManager::handlePlayerChangeShieldChargeBroadcast(PlayerCounterInformati
 }
 
 void GameManager::handleDiskStatusBroadcast(DiskStatusInformation information) {
-	// TODO: sync local calculation
+	if (information.player_id() == _userId) {
+		if (information.disk_status() == DISK_STATE_RETURNING) {
+			_user->getDisk()->forceReturn();
+		}
+		else if(information.disk_status() == DISK_STATE_READY) {
+			_user->getDisk()->catchDisk();
+		}
+	}
+	else {
+		if (information.disk_status() == DISK_STATE_RETURNING) {
+			_enemy->getDisk()->forceReturn();
+		}
+		else if (information.disk_status() == DISK_STATE_READY) {
+			_enemy->getDisk()->catchDisk();
+		}
+	}
 }
 
 void GameManager::handleDiskThrowBroadcast(DiskThrowInformation information) {
@@ -216,13 +240,36 @@ void GameManager::handleDiskThrowBroadcast(DiskThrowInformation information) {
 
 void GameManager::handleDiskPositionBroadcast(DiskPosition information) {
 	if (information.player_id() == _userId) {
-		_user->getDisk()->setPosition(createVector(information.disk_pos()));
-		_user->getDisk()->setRotation(createQuaternion(information.disk_rot()));
+		if(_user->getDisk()->getState() == DISK_STATE_FREE_FLY || _user->getDisk()->getState() == DISK_STATE_RETURNING) {
+			_user->getDisk()->setPosition(createVector(information.disk_pos()), true);
+			_user->getDisk()->setRotation(createQuaternion(information.disk_rot()), true);
+		}
 	} else {
-		_enemy->getDisk()->setPosition(createVector(information.disk_pos()));
-		_enemy->getDisk()->setRotation(createQuaternion(information.disk_rot()));
+		if(_enemy->getDisk()->getState() == DISK_STATE_FREE_FLY || _enemy->getDisk()->getState() == DISK_STATE_RETURNING) {
+			_enemy->getDisk()->setPosition(createVector(information.disk_pos()), true);
+			_enemy->getDisk()->setRotation(createQuaternion(information.disk_rot()), true);
+		}
 	}
-	// TODO: sync local calculation
+}
+
+void GameManager::handleWallCollisonInformation(WallCollisonInformation information) {
+	CollisionWallNormal direction;
+	switch (information.collision_wall())
+	{
+	case COLLISION_WALL_BACKWARD:
+	case COLLISION_WALL_FORWARD:
+		direction = COLLISION_WALL_NORMAL_Z;
+		break;
+	case COLLISION_WALL_RIGHT:
+	case COLLISION_WALL_LEFT:
+		direction = COLLISION_WALL_NORMAL_X;
+		break;
+	case COLLISION_WALL_UP:
+	case COLLISION_WALL_DOWN:
+		direction = COLLISION_WALL_NORMAL_Y;
+		break;
+	}
+	createAnimationAtCollisionPoint(createVector(information.collision_pos()), collisionAnimationSize, direction, information.player_id() == _userId ? userFaction : enemyFaction);
 }
 
 void GameManager::handleSToCPacket(unsigned short peerId, ProtobufMessagePacket* packet) {
@@ -267,6 +314,9 @@ void GameManager::processSToCPacket(unsigned short peerId, ProtobufMessagePacket
 		break;
 	case STOC_PACKET_TYPE_DISK_POSITION_BROADCAST:
 		handleDiskPositionBroadcast(packet->disk_position());
+		break;
+	case STOC_PACKET_TYPE_WALL_COLLISION_INFORMATION:
+		handleWallCollisonInformation(packet->wall_collision_information());
 		break;
 	}
 }

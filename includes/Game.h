@@ -51,6 +51,7 @@ private:
 	void handleDiskStatusBroadcast(DiskStatusInformation information);
 	void handleDiskThrowBroadcast(DiskThrowInformation information);
 	void handleDiskPositionBroadcast(DiskPosition information);
+	void handleWallCollisonInformation(WallCollisonInformation information);
 
 	std::vector<PacketInformation> _packets;
 	std::mutex _packetVectorMutex;

@@ -39,9 +39,9 @@ public:
 	Player(PlayerFaction faction, bool drawModel);
 	~Player();
 	void update();
+	void loseLife();
 private:
 	void recalculatePositions();
-	void loseLife();
 	bool modelIncluded;
 	PlayerFaction faction;
 	Player* enemy;

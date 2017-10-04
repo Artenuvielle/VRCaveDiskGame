@@ -41,8 +41,8 @@ Disk::Disk(PlayerFaction type, DiskEventHandler* handler) : handler(handler) {
 	rotationAroundAxis = 0;
 }
 
-bool Disk::setPosition(Vec3f newPosition) {
-	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN) {
+bool Disk::setPosition(Vec3f newPosition, bool force) {
+	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN || force) {
 		if (state == DISK_STATE_DRAWN) {
 			momentum = 0.9f * momentum + (newPosition - lastPositionWhileDrawn);
 			lastPositionWhileDrawn = newPosition;
@@ -77,9 +77,9 @@ Vec3f Disk::getTargetEnemyPosition() {
 	return targetEnemyPosition;
 }
 
-bool Disk::setRotation(Quaternion newRotation) {
+bool Disk::setRotation(Quaternion newRotation, bool force) {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
-	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN) {
+	if(state == DISK_STATE_READY || state == DISK_STATE_DRAWN || force) {
 		Vec3f newForward;
 		newRotation.multVec(Vec3f(0,0,1), newForward);
 		if (state == DISK_STATE_DRAWN) {
@@ -179,70 +179,72 @@ void Disk::update() {
 	Real32 time = glutGet(GLUT_ELAPSED_TIME);
 	transform->getRotation().multVec(Vec3f(0,1,0), currentAxis);
 	if (state == DISK_STATE_FREE_FLY || state == DISK_STATE_RETURNING) {
-		Vec3f vectorToTarget;
-		Real32 diskMomentumAttractionFactor;
-		Vec3f forward;
-		if (state == DISK_STATE_FREE_FLY) {
-			if ((transform->getTranslation().z() < targetEnemyPosition.z() && diskType == userFaction) ||
-				(transform->getTranslation().z() > targetEnemyPosition.z() && diskType == enemyFaction)) {
-				vectorToTarget = momentum;
-			} else {
-				vectorToTarget = targetEnemyPosition - transform->getTranslation();
-			}
-			diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
-			forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
-		} else {
-			if ((transform->getTranslation().z() > targetOwnerPosition.z() && diskType == userFaction) ||
-				(transform->getTranslation().z() < targetOwnerPosition.z() && diskType == enemyFaction)) {
-				vectorToTarget = momentum;
-			} else {
-				vectorToTarget = targetOwnerPosition - transform->getTranslation();
-			}
-			diskMomentumAttractionFactor = diskOwnerMomentumAttractionFactor;
-			forward = Vec3f(0,0,userFaction == diskType ? 1 : -1);
-		}
-
-		Real32 targetProximity = 1 - (vectorToTarget.length() / WALL_Z_DIFF);
-
-		Quaternion axisRotation;
-		if (time - lastCollisionTime < diskRotationTimeAfterCollision * 1000) {
-			Real32 angleDiff = targetAngle - lastCollisionAngle;
-			if (angleDiff < -180) angleDiff += 360;
-			if (angleDiff > 180) angleDiff -= 360;
-			axialRotationPerMillisecond = angleDiff / (diskRotationTimeAfterCollision * 1000);
-			Real32 newAngle = lastCollisionAngle + axialRotationPerMillisecond * (time - lastCollisionTime);
-			axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
-			currentAngle = newAngle;
-		} else {
-			if (osgAbs(axialRotationPerMillisecond) > diskMinimalAxialRotationAfterCollision) {
-				axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
-				if (osgAbs(axialRotationPerMillisecond) < diskMinimalAxialRotationAfterCollision * 1.1) {
-					axialRotationPerMillisecond = osgSgn(axialRotationPerMillisecond) * diskMinimalAxialRotationAfterCollision;
+		if (!isConnected) {
+			Vec3f vectorToTarget;
+			Real32 diskMomentumAttractionFactor;
+			Vec3f forward;
+			if (state == DISK_STATE_FREE_FLY) {
+				if ((transform->getTranslation().z() < targetEnemyPosition.z() && diskType == userFaction) ||
+					(transform->getTranslation().z() > targetEnemyPosition.z() && diskType == enemyFaction)) {
+					vectorToTarget = momentum;
+				} else {
+					vectorToTarget = targetEnemyPosition - transform->getTranslation();
 				}
+				diskMomentumAttractionFactor = diskEnemyMomentumAttractionFactor;
+				forward = Vec3f(0,0,userFaction == diskType ? -1 : 1);
+			} else {
+				if ((transform->getTranslation().z() > targetOwnerPosition.z() && diskType == userFaction) ||
+					(transform->getTranslation().z() < targetOwnerPosition.z() && diskType == enemyFaction)) {
+					vectorToTarget = momentum;
+				} else {
+					vectorToTarget = targetOwnerPosition - transform->getTranslation();
+				}
+				diskMomentumAttractionFactor = diskOwnerMomentumAttractionFactor;
+				forward = Vec3f(0,0,userFaction == diskType ? 1 : -1);
 			}
-			targetAngle += axialRotationPerMillisecond * (time - lastCollisionTime);
-			if (targetAngle < -180) targetAngle += 360;
-			if (targetAngle > 180) targetAngle -= 360;
-			axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
-			currentAngle = targetAngle;
-		}
-		Quaternion rotation = interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity);
-		rotation.multVec(momentum, momentum);
-		Quaternion aroundAxisRotation(Vec3f(0,-1,0), osgDegree2Rad((time - lastPositionUpdateTime) * rotationAroundAxis / 1000 * diskAxisRotationFactor));
-		transform->setRotation(Quaternion(forward, momentum) * axisRotation * aroundAxisRotation);
 
-		//detecting wall collisions and moving
-		moveDiskAtLeastUntilWallCollision(time - lastPositionUpdateTime);
-		// detecting enemy collisons
-		if (state == DISK_STATE_FREE_FLY) {
-			if (enemyShield->hasCharges() && collidesWithEnemyShield()) {
-				std::cout << "Disk was defended with shield" << '\n';
-				enemyShield->reduceCharges();
-				state = DISK_STATE_RETURNING;
-				// mirror momentum on shield surface
-				Vec3f shieldNormal;
-				enemyShield->getRotation().multVec(Vec3f(0, 1, 0), shieldNormal);
-				momentum -= shieldNormal * 2 * (momentum.dot(shieldNormal));
+			Real32 targetProximity = 1 - (vectorToTarget.length() / WALL_Z_DIFF);
+
+			Quaternion axisRotation;
+			if (time - lastCollisionTime < diskRotationTimeAfterCollision * 1000) {
+				Real32 angleDiff = targetAngle - lastCollisionAngle;
+				if (angleDiff < -180) angleDiff += 360;
+				if (angleDiff > 180) angleDiff -= 360;
+				axialRotationPerMillisecond = angleDiff / (diskRotationTimeAfterCollision * 1000);
+				Real32 newAngle = lastCollisionAngle + axialRotationPerMillisecond * (time - lastCollisionTime);
+				axisRotation = Quaternion(forward, osgDegree2Rad(newAngle));
+				currentAngle = newAngle;
+			} else {
+				if (osgAbs(axialRotationPerMillisecond) > diskMinimalAxialRotationAfterCollision) {
+					axialRotationPerMillisecond *= osgPow(0.995f, (time - lastCollisionTime));
+					if (osgAbs(axialRotationPerMillisecond) < diskMinimalAxialRotationAfterCollision * 1.1) {
+						axialRotationPerMillisecond = osgSgn(axialRotationPerMillisecond) * diskMinimalAxialRotationAfterCollision;
+					}
+				}
+				targetAngle += axialRotationPerMillisecond * (time - lastCollisionTime);
+				if (targetAngle < -180) targetAngle += 360;
+				if (targetAngle > 180) targetAngle -= 360;
+				axisRotation = Quaternion(forward, osgDegree2Rad(targetAngle));
+				currentAngle = targetAngle;
+			}
+			Quaternion rotation = interpolateVector(momentum, vectorToTarget, (time - lastPositionUpdateTime) / 1000 * diskMomentumAttractionFactor * targetProximity * targetProximity);
+			rotation.multVec(momentum, momentum);
+			Quaternion aroundAxisRotation(Vec3f(0,-1,0), osgDegree2Rad((time - lastPositionUpdateTime) * rotationAroundAxis / 1000 * diskAxisRotationFactor));
+			transform->setRotation(Quaternion(forward, momentum) * axisRotation * aroundAxisRotation);
+
+			//detecting wall collisions and moving
+			moveDiskAtLeastUntilWallCollision(time - lastPositionUpdateTime);
+			// detecting enemy collisons
+			if (state == DISK_STATE_FREE_FLY) {
+				if (enemyShield->hasCharges() && collidesWithEnemyShield()) {
+					std::cout << "Disk was defended with shield" << '\n';
+					enemyShield->reduceCharges();
+					state = DISK_STATE_RETURNING;
+					// mirror momentum on shield surface
+					Vec3f shieldNormal;
+					enemyShield->getRotation().multVec(Vec3f(0, 1, 0), shieldNormal);
+					momentum -= shieldNormal * 2 * (momentum.dot(shieldNormal));
+				}
 			}
 		}
 		updateLightTrails();
@@ -251,8 +253,11 @@ void Disk::update() {
 }
 
 void Disk::updateLightTrails() {
+	//Vec3f lightTrailDirection = momentum.cross(currentAxis);
+	//lightTrailDirection *= (diskRadius - 2.f) / lightTrailDirection.length();
 	Vec3f lightTrailDirection = momentum.cross(currentAxis);
-	lightTrailDirection *= (diskRadius - 2.f) / lightTrailDirection.length();
+	transform->getRotation().multVec(Vec3f(diskRadius - 2.f,0,0), lightTrailDirection);
+	//lightTrailDirection *= (diskRadius - 2.f) / lightTrailDirection.length();
 	if (lightTrailLeft != nullptr) {
 		lightTrailLeft->addPoint(getPosition() + lightTrailDirection);
 	}
